@@ -4,24 +4,26 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
+import { cpfCnpjSchema, phoneSchema, optionalIsoDateSchema, optionalMoneySchema } from "@/lib/validators";
 import type { ExtractedPolicyData } from "@/lib/ai/extract-document";
 
-const confirmSchema = z.object({
-  name: z.string().trim().min(1, "Informe o nome do cliente."),
-  cpf_cnpj: z.string().trim().optional().transform((v) => v || null),
-  email: z.string().trim().email("E-mail inválido.").optional().or(z.literal("")).transform((v) => v || null),
-  phone: z.string().trim().optional().transform((v) => v || null),
-  insurer: z.string().trim().optional().transform((v) => v || null),
-  policy_number: z.string().trim().optional().transform((v) => v || null),
-  policy_type: z.string().trim().optional().transform((v) => v || null),
-  premium_total: z
-    .string()
-    .optional()
-    .transform((v) => (v ? Number(v.replace(",", ".")) : null))
-    .refine((v) => v === null || !Number.isNaN(v), "Prêmio inválido."),
-  start_date: z.string().optional().transform((v) => v || null),
-  end_date: z.string().optional().transform((v) => v || null),
-});
+const confirmSchema = z
+  .object({
+    name: z.string().trim().min(1, "Informe o nome do cliente."),
+    cpf_cnpj: cpfCnpjSchema,
+    email: z.string().trim().email("E-mail inválido.").optional().or(z.literal("")).transform((v) => v || null),
+    phone: phoneSchema,
+    insurer: z.string().trim().optional().transform((v) => v || null),
+    policy_number: z.string().trim().optional().transform((v) => v || null),
+    policy_type: z.string().trim().optional().transform((v) => v || null),
+    premium_total: optionalMoneySchema,
+    start_date: optionalIsoDateSchema,
+    end_date: optionalIsoDateSchema,
+  })
+  .refine((data) => !data.start_date || !data.end_date || data.end_date >= data.start_date, {
+    message: "A data de fim precisa ser igual ou posterior à data de início.",
+    path: ["end_date"],
+  });
 
 export type ConfirmFormState = { error: string | null };
 

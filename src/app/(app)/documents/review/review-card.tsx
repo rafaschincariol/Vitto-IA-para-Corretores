@@ -72,11 +72,22 @@ export function ReviewCard({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor={`cpf-${client.id}`}>CPF/CNPJ</Label>
-              <Input id={`cpf-${client.id}`} name="cpf_cnpj" defaultValue={client.cpf_cnpj ?? ""} />
+              <Input
+                id={`cpf-${client.id}`}
+                name="cpf_cnpj"
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                defaultValue={client.cpf_cnpj ?? ""}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor={`phone-${client.id}`}>Telefone</Label>
-              <Input id={`phone-${client.id}`} name="phone" defaultValue={client.phone ?? ""} />
+              <Input
+                id={`phone-${client.id}`}
+                name="phone"
+                type="tel"
+                placeholder="(11) 91234-5678"
+                defaultValue={client.phone ?? ""}
+              />
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label htmlFor={`email-${client.id}`}>E-mail</Label>

@@ -79,7 +79,12 @@ export function ClientFormDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
-              <Input id="cpf_cnpj" name="cpf_cnpj" defaultValue={client?.cpf_cnpj ?? ""} />
+              <Input
+                id="cpf_cnpj"
+                name="cpf_cnpj"
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                defaultValue={client?.cpf_cnpj ?? ""}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
@@ -87,7 +92,13 @@ export function ClientFormDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone</Label>
-              <Input id="phone" name="phone" defaultValue={client?.phone ?? ""} />
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="(11) 91234-5678"
+                defaultValue={client?.phone ?? ""}
+              />
             </div>
             {isOwner && teamMembers.length > 0 && (
               <div className="space-y-2">

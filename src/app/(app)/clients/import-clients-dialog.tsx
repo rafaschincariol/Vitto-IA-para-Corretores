@@ -58,7 +58,11 @@ export function ImportClientsDialog() {
         toast.error(result.error);
         return;
       }
-      toast.success(`${result.inserted} cliente(s) importado(s).`);
+      if (result.skipped.length > 0) {
+        toast.warning(`${result.inserted} importado(s), ${result.skipped.length} linha(s) ignorada(s) por dados inválidos.`);
+      } else {
+        toast.success(`${result.inserted} cliente(s) importado(s).`);
+      }
       setOpen(false);
       reset();
       router.refresh();

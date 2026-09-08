@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
+import { requiredIsoDateSchema, optionalMoneySchema } from "@/lib/validators";
 
 const policySchema = z
   .object({
@@ -11,13 +12,9 @@ const policySchema = z
     insurer: z.string().trim().min(1, "Informe a seguradora."),
     policy_number: z.string().trim().min(1, "Informe o número da apólice."),
     policy_type: z.string().trim().optional().transform((v) => v || null),
-    premium_total: z
-      .string()
-      .optional()
-      .transform((v) => (v ? Number(v.replace(",", ".")) : null))
-      .refine((v) => v === null || !Number.isNaN(v), "Prêmio inválido."),
-    start_date: z.string().min(1, "Informe a data de início."),
-    end_date: z.string().min(1, "Informe a data de fim."),
+    premium_total: optionalMoneySchema,
+    start_date: requiredIsoDateSchema,
+    end_date: requiredIsoDateSchema,
     status: z.enum(["ativo", "em_renovacao", "cancelado", "vencido"]),
     notes: z.string().trim().optional().transform((v) => v || null),
   })

@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { isValidCpfCnpj, isValidBrazilianPhone } from "@/lib/validators";
 
 export type ParsedClientRow = {
   name: string;
@@ -51,6 +52,21 @@ export async function parseClientsSpreadsheet(file: File): Promise<ParseResult> 
 
     if (!mapped.name) {
       rowErrors.push(`Linha ${index + 2}: coluna "Nome" vazia ou não encontrada — ignorada.`);
+      return;
+    }
+
+    if (mapped.cpf_cnpj && !isValidCpfCnpj(mapped.cpf_cnpj)) {
+      rowErrors.push(`Linha ${index + 2} (${mapped.name}): CPF/CNPJ "${mapped.cpf_cnpj}" inválido — ignorada.`);
+      return;
+    }
+
+    if (mapped.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mapped.email)) {
+      rowErrors.push(`Linha ${index + 2} (${mapped.name}): e-mail "${mapped.email}" inválido — ignorada.`);
+      return;
+    }
+
+    if (mapped.phone && !isValidBrazilianPhone(mapped.phone)) {
+      rowErrors.push(`Linha ${index + 2} (${mapped.name}): telefone "${mapped.phone}" inválido — ignorada.`);
       return;
     }
 
