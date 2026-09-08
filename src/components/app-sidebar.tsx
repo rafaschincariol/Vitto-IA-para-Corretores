@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, FileText, FolderOpen, Sparkles, Settings } from "lucide-react";
+import { LayoutDashboard, Users, FileText, FolderOpen, Sparkles, Settings, CreditCard } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/policies", label: "Apólices", icon: FileText },
   { href: "/documents", label: "Documentos", icon: FolderOpen },
   { href: "/assistant", label: "Assistente", icon: Sparkles },
+  { href: "/billing", label: "Assinatura", icon: CreditCard },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
 

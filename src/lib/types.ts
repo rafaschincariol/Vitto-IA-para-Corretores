@@ -71,6 +71,26 @@ export type Document = {
   created_at: string;
 };
 
+export type SubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "unpaid"
+  | "incomplete"
+  | "incomplete_expired"
+  | "paused";
+
+export type TenantSubscription = {
+  tenant_id: string;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  status: SubscriptionStatus;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  updated_at: string;
+};
+
 export type TenantInvite = {
   id: string;
   tenant_id: string;

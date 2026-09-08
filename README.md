@@ -12,6 +12,7 @@ auto-catalogação (zero digitação) e assistente com RAG de base dupla
 - **Frontend**: Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS v4 + shadcn/ui (estilo Radix).
 - **Backend**: Supabase — Postgres com Row Level Security, Auth (e-mail/senha), Storage e pgvector.
 - **IA**: Claude (Anthropic) para leitura de PDFs/imagens e para o assistente; Voyage AI para embeddings do RAG.
+- **Cobrança**: Stripe (Checkout + Billing Portal) — assinatura mensal por corretora, com 14 dias de teste grátis.
 - **Gráficos**: Recharts. **Formulários**: react-hook-form + zod.
 
 ## 1. Criar o projeto no Supabase
@@ -26,6 +27,7 @@ auto-catalogação (zero digitação) e assistente com RAG de base dupla
    - `supabase/migrations/0005_team_permissions.sql`
    - `supabase/migrations/0006_batch_review_feedback.sql`
    - `supabase/migrations/0007_rag.sql`
+   - `supabase/migrations/0008_billing.sql`
 
    (Alternativa via CLI, se preferir: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.)
 
@@ -39,7 +41,19 @@ auto-catalogação (zero digitação) e assistente com RAG de base dupla
    ```
    Sem isso, o resto do app funciona normalmente — só esse painel fica bloqueado.
 
-## 2. Rodando localmente
+## 2. Configurar o Stripe (cobrança)
+
+1. Crie uma conta em [dashboard.stripe.com](https://dashboard.stripe.com) (fica em modo teste até você ativar sua empresa — use o modo teste para desenvolver).
+2. Em **Catálogo de produtos → Adicionar produto**, crie um produto recorrente mensal (R$ 49,99/mês) e copie o **id do Price** gerado (`price_...`) — vai para `STRIPE_PRICE_ID`.
+3. Em **Desenvolvedores → Chaves de API**, copie a **chave secreta** (`sk_test_...` em teste) — vai para `STRIPE_SECRET_KEY`.
+4. Webhook — a assinatura do endpoint (`STRIPE_WEBHOOK_SECRET`) é diferente em cada ambiente:
+   - **Local**: instale a [Stripe CLI](https://docs.stripe.com/stripe-cli) e rode `stripe listen --forward-to localhost:3000/api/webhooks/stripe --api-key <sua STRIPE_SECRET_KEY>`. O comando imprime um `whsec_...` — use esse valor localmente enquanto o `stripe listen` estiver rodando.
+   - **Produção**: em **Desenvolvedores → Webhooks → Criar destino de evento**, aponte para `https://<sua-url>.vercel.app/api/webhooks/stripe`, escolhendo os eventos `customer.subscription.created`, `customer.subscription.updated` e `customer.subscription.deleted`. O `whsec_...` gerado ali é o valor de produção — diferente do local.
+5. Em **Project Settings → API → service_role** no Supabase, copie a **service_role key** — vai para `SUPABASE_SERVICE_ROLE_KEY`. Ela só é usada por `src/app/api/webhooks/stripe/route.ts` (o webhook não tem sessão de usuário, então precisa desse acesso; ver comentário no arquivo), nunca em nenhum outro lugar do código — não exponha essa chave no cliente.
+
+Diferente das chaves de IA (que só desativam uma funcionalidade se ausentes), essas variáveis são necessárias para o fluxo de cobrança em si: sem elas, o botão "Assinar" em `/billing` falha ao criar a sessão do Checkout, e depois que o trial de 14 dias vence, ninguém consegue liberar o acesso.
+
+## 3. Rodando localmente
 
 Pré-requisitos: Node.js 20.9+.
 
@@ -53,9 +67,11 @@ Preencha `.env.local`:
 - URL e anon key do passo 1.2.
 - `ANTHROPIC_API_KEY` (crie em [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)) — sem ela, a extração por IA em `/documents` falha.
 - `VOYAGE_API_KEY` (crie em [dashboard.voyageai.com/api-keys](https://dashboard.voyageai.com/api-keys)) — sem ela, o assistente (`/assistant`) não encontra nada nas bases (mas ainda responde usando o snapshot da carteira, que não depende de embeddings).
+- `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` — do passo 2.
 
-Nenhuma dessas duas chaves de IA impede o resto do app de funcionar — cada
-uma só desativa a funcionalidade correspondente se estiver ausente.
+Nenhuma das duas chaves de IA impede o resto do app de funcionar — cada
+uma só desativa a funcionalidade correspondente se estiver ausente. Já as
+variáveis do Stripe são necessárias para o fluxo de cobrança (ver passo 2).
 
 ```bash
 npm run dev
@@ -68,12 +84,13 @@ vira o Admin dela.
 **Teste de isolamento (RLS)**: crie uma segunda conta (outro e-mail/aba
 anônima) e confirme que cada uma só enxerga seus próprios clientes/apólices/documentos.
 
-## 3. Deploy
+## 4. Deploy
 
 **Frontend (Vercel)**:
 1. Suba este diretório para um repositório Git e importe-o em [vercel.com/new](https://vercel.com/new) (Root Directory = `corretor-saas`, caso o repo tenha outras pastas).
-2. Configure as variáveis de ambiente do projeto na Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY` (os mesmos valores do `.env.local`).
+2. Configure as variáveis de ambiente do projeto na Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `SUPABASE_SERVICE_ROLE_KEY` (os mesmos valores do `.env.local`).
 3. Deploy.
+4. Só depois do deploy você tem a URL final — volte ao passo 2.4 e crie o destino de evento de **produção** no Stripe apontando pra essa URL, e adicione o `STRIPE_WEBHOOK_SECRET` de produção (gerado nesse passo, diferente do local) como uma variável de ambiente à parte na Vercel.
 
 **Depois do primeiro deploy**, volte ao Supabase (**Authentication → URL Configuration**) e:
 - Atualize a **Site URL** para a URL de produção da Vercel.
@@ -92,10 +109,12 @@ corretor-saas/
       supabase/               # clients Supabase (browser, server, proxy)
       data/                    # Data Access Layer (sessão/tenant, KPIs, snapshot p/ o assistente)
       ai/                      # Anthropic (extração, assistente), Voyage (embeddings), chunking
+      billing/                 # cliente Stripe (singleton)
+      data/billing.ts          # status de assinatura, cálculo de bloqueio/trial
       types.ts                 # tipos das tabelas
     app/
       (auth)/login, (auth)/signup, auth/callback   # autenticação + aceite de convite
-      (app)/layout.tsx                              # shell (sidebar, topbar, tema)
+      (app)/layout.tsx                              # shell (sidebar, topbar, tema) + gate de assinatura
       (app)/dashboard                               # KPIs + gráfico de vencimentos
       (app)/clients, (app)/clients/[id]              # CRM (manual, planilha, atribuição de responsável)
       (app)/policies                                 # apólices (visão geral)
@@ -103,6 +122,8 @@ corretor-saas/
       (app)/assistant                                 # chat RAG (base privada + base global)
       (app)/admin/global-knowledge                    # ingestão da base global (platform_admins)
       (app)/settings                                  # nome da corretora + equipe/convites
+      billing/                                        # status da assinatura + Checkout/Portal (fora do grupo (app))
+      api/webhooks/stripe                             # webhook do Stripe (única rota com service_role)
 ```
 
 Cada módulo de negócio tem seu próprio `actions.ts`/`*-actions.ts` com Server
@@ -155,6 +176,26 @@ pede ao Claude uma resposta citando as fontes. Cada apólice processada por
 IA (extração ou upload em lote) já é indexada automaticamente
 (`lib/ai/ingest-chunks.ts`). A base global só é alimentada por quem está em
 `platform_admins` (ver passo 5 da configuração do Supabase).
+
+**Cobrança e bloqueio de acesso**: cada tenant (corretora) nasce com 14 dias
+de teste grátis (`tenant_subscriptions`, criada pelo mesmo trigger
+`handle_new_user()`). `(app)/layout.tsx` verifica o status da assinatura a
+cada request e, se o trial venceu e não há assinatura ativa, troca o
+conteúdo principal por uma tela de bloqueio — sidebar e topbar continuam
+visíveis, e `/billing` continua acessível (fica **fora** do grupo `(app)`
+de propósito, senão ninguém conseguiria assinar depois de bloqueado). Só o
+Admin (`role = 'owner'`) vê os botões de assinar/gerenciar; o Corretor
+(`member`) só vê um aviso pra falar com o Admin. Assinar e cancelar
+acontecem inteiramente no Stripe (Checkout e Billing Portal — zero UI de
+pagamento própria); o Stripe avisa o app do resultado via webhook
+(`api/webhooks/stripe`), que é a única rota do projeto que usa a
+`service_role` key do Supabase — necessário porque quem chama essa rota é o
+Stripe, não um usuário logado com sessão, então não dá pra usar RLS normal
+como no resto do app. A tabela `tenant_subscriptions` só aceita escrita via
+esse webhook, via a função `set_tenant_stripe_customer` (que confere que
+quem chamou é o Admin do tenant) ou via o trigger de criação — nunca direto
+pelo client SDK, pra um Admin não conseguir se auto-liberar editando a
+linha.
 
 ## Roadmap (fora do escopo deste código)
 

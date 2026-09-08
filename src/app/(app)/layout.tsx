@@ -1,14 +1,20 @@
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 import { requireProfile } from "@/lib/data/auth";
+import { getTenantSubscription, isSubscriptionLocked } from "@/lib/data/billing";
+import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { AppSidebarNav } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
+import { SubscriptionLockedScreen } from "@/components/subscription-locked-screen";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const { profile, tenant } = await requireProfile();
+  const supabase = await createSupabaseClient();
+  const subscription = await getTenantSubscription(supabase, tenant.id);
+  const locked = isSubscriptionLocked(subscription);
 
   return (
     <div className="flex min-h-screen">
@@ -42,7 +48,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-x-hidden p-4 md:p-6">
+          {locked ? (
+            <SubscriptionLockedScreen
+              isOwner={profile.role === "owner"}
+              trialExpired={subscription?.status === "trialing"}
+            />
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );
