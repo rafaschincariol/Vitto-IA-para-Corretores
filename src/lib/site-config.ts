@@ -9,4 +9,6 @@ export const siteConfig = {
   trialDays: 14,
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://corretor-saas.vercel.app",
   supportEmail: "contato@vittoia.com.br",
+  legalName: "R Schincariol Serviços Administrativos LTDA",
+  cnpj: "39.837.484/0001-63",
 };

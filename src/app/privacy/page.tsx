@@ -23,7 +23,8 @@ export default function PrivacyPage() {
             <h2 className="font-heading text-lg font-medium">1. Quem somos</h2>
             <p className="mt-2 text-muted-foreground">
               A {siteConfig.name} ({siteConfig.fullName}) é operada por{" "}
-              <strong>[razão social e CNPJ da empresa]</strong>, controladora dos
+              <strong>{siteConfig.legalName}</strong> (CNPJ {siteConfig.cnpj}),
+              controladora dos
               dados coletados diretamente do corretor cadastrado e operadora dos
               dados que o corretor insere sobre os clientes dele, conforme a Lei
               Geral de Proteção de Dados (Lei 13.709/2018 — LGPD).
