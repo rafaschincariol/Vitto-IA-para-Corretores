@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit": "npm audit --omit=dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",

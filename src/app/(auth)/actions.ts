@@ -18,9 +18,16 @@ export async function signInWithPassword(
   }
 
   const supabase = await createClient();
+
+  const { data: limited } = await supabase.rpc("is_login_rate_limited", { p_email: email });
+  if (limited) {
+    return { error: "Muitas tentativas. Tente novamente em alguns minutos." };
+  }
+
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    await supabase.rpc("record_failed_login", { p_email: email });
     return { error: "E-mail ou senha inválidos." };
   }
 

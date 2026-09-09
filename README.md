@@ -28,6 +28,7 @@ auto-catalogação (zero digitação) e assistente com RAG de base dupla
    - `supabase/migrations/0006_batch_review_feedback.sql`
    - `supabase/migrations/0007_rag.sql`
    - `supabase/migrations/0008_billing.sql`
+   - `supabase/migrations/0009_security_hardening.sql`
 
    (Alternativa via CLI, se preferir: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.)
 
@@ -196,6 +197,12 @@ esse webhook, via a função `set_tenant_stripe_customer` (que confere que
 quem chamou é o Admin do tenant) ou via o trigger de criação — nunca direto
 pelo client SDK, pra um Admin não conseguir se auto-liberar editando a
 linha.
+
+## Segurança
+
+RLS em todas as tabelas, isolamento por tenant, rate limit de login, headers de
+segurança, rotina de `npm audit` antes de cada deploy — ver [SECURITY.md](./SECURITY.md)
+para o resumo completo, incluindo o que foi decidido deixar de fora e por quê.
 
 ## Roadmap (fora do escopo deste código)
 
