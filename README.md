@@ -1,10 +1,14 @@
-# Corretor SaaS
+# Vitto IA para Corretores (Corretor SaaS)
 
 Plataforma multi-tenant de gestão de carteira para corretores de seguros.
-Este repositório cobre **Fase 1 (MVP)**, **Fase 2 (extração por IA)** e o
-essencial da **Fase 3**: permissões de equipe, upload em lote com
-auto-catalogação (zero digitação) e assistente com RAG de base dupla
-(privada + geral). A Fase 4 (WhatsApp) ainda não está implementada — ver
+Este repositório cobre **Fase 1 (MVP)**, **Fase 2 (extração por IA)** e a
+**Fase 3** (permissões de equipe, upload em lote com auto-catalogação —
+zero digitação — e assistente com RAG de base dupla, privada + geral), mais
+o que veio depois das três fases originais: **cobrança via Stripe** (trial
+de 14 dias, bloqueio automático, self-service de cancelamento), **hardening
+de segurança** (ver [SECURITY.md](./SECURITY.md)), **site de marketing**
+público (`/`, `/terms`, `/privacy`, SEO) e **monitoramento** (Sentry +
+Vercel Analytics). A Fase 4 (WhatsApp) ainda não está implementada — ver
 [Roadmap](#roadmap).
 
 ## Stack
@@ -13,6 +17,7 @@ auto-catalogação (zero digitação) e assistente com RAG de base dupla
 - **Backend**: Supabase — Postgres com Row Level Security, Auth (e-mail/senha), Storage e pgvector.
 - **IA**: Claude (Anthropic) para leitura de PDFs/imagens e para o assistente; Voyage AI para embeddings do RAG.
 - **Cobrança**: Stripe (Checkout + Billing Portal) — assinatura mensal por corretora, com 14 dias de teste grátis.
+- **Observabilidade**: Sentry (erros em produção) + Vercel Analytics (uso do site, sem cookies).
 - **Gráficos**: Recharts. **Formulários**: react-hook-form + zod.
 
 ## 1. Criar o projeto no Supabase
@@ -69,10 +74,12 @@ Preencha `.env.local`:
 - `ANTHROPIC_API_KEY` (crie em [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)) — sem ela, a extração por IA em `/documents` falha.
 - `VOYAGE_API_KEY` (crie em [dashboard.voyageai.com/api-keys](https://dashboard.voyageai.com/api-keys)) — sem ela, o assistente (`/assistant`) não encontra nada nas bases (mas ainda responde usando o snapshot da carteira, que não depende de embeddings).
 - `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` — do passo 2.
+- `NEXT_PUBLIC_SENTRY_DSN` (opcional; crie um projeto Next.js em [sentry.io](https://sentry.io) e copie o DSN em **Project Settings → Client Keys (DSN)**) — sem ela, erros em produção simplesmente não são reportados a lugar nenhum; o app funciona normalmente.
 
-Nenhuma das duas chaves de IA impede o resto do app de funcionar — cada
-uma só desativa a funcionalidade correspondente se estiver ausente. Já as
-variáveis do Stripe são necessárias para o fluxo de cobrança (ver passo 2).
+Nenhuma das duas chaves de IA nem a do Sentry impedem o resto do app de
+funcionar — cada uma só desativa a funcionalidade correspondente se estiver
+ausente. Já as variáveis do Stripe são necessárias para o fluxo de cobrança
+(ver passo 2).
 
 ```bash
 npm run dev
@@ -89,7 +96,7 @@ anônima) e confirme que cada uma só enxerga seus próprios clientes/apólices/
 
 **Frontend (Vercel)**:
 1. Suba este diretório para um repositório Git e importe-o em [vercel.com/new](https://vercel.com/new) (Root Directory = `corretor-saas`, caso o repo tenha outras pastas).
-2. Configure as variáveis de ambiente do projeto na Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `SUPABASE_SERVICE_ROLE_KEY` (os mesmos valores do `.env.local`).
+2. Configure as variáveis de ambiente do projeto na Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SENTRY_DSN` (opcional) (os mesmos valores do `.env.local`).
 3. Deploy.
 4. Só depois do deploy você tem a URL final — volte ao passo 2.4 e crie o destino de evento de **produção** no Stripe apontando pra essa URL, e adicione o `STRIPE_WEBHOOK_SECRET` de produção (gerado nesse passo, diferente do local) como uma variável de ambiente à parte na Vercel.
 
@@ -104,27 +111,37 @@ anônima) e confirme que cada uma só enxerga seus próprios clientes/apólices/
 ```
 corretor-saas/
   supabase/migrations/       # schema SQL versionado (extensões, tabelas, RLS)
+  sentry.server.config.ts    # init do Sentry no runtime Node
+  sentry.edge.config.ts      # init do Sentry no runtime edge (proxy/middleware)
   src/
     proxy.ts                 # protege rotas autenticadas, redireciona /login <-> /dashboard
+    instrumentation.ts       # carrega sentry.server/edge.config conforme o runtime
+    instrumentation-client.ts# init do Sentry no navegador
     lib/
       supabase/               # clients Supabase (browser, server, proxy)
       data/                    # Data Access Layer (sessão/tenant, KPIs, snapshot p/ o assistente)
       ai/                      # Anthropic (extração, assistente), Voyage (embeddings), chunking
       billing/                 # cliente Stripe (singleton)
       data/billing.ts          # status de assinatura, cálculo de bloqueio/trial
+      site-config.ts           # nome, preço, URL — usado pela landing page e pelo metadata
       types.ts                 # tipos das tabelas
+    components/
+      marketing/                # nav, footer e o diagrama do hero da landing page
     app/
-      (auth)/login, (auth)/signup, auth/callback   # autenticação + aceite de convite
-      (app)/layout.tsx                              # shell (sidebar, topbar, tema) + gate de assinatura
-      (app)/dashboard                               # KPIs + gráfico de vencimentos
-      (app)/clients, (app)/clients/[id]              # CRM (manual, planilha, atribuição de responsável)
-      (app)/policies                                 # apólices (visão geral)
-      (app)/documents, (app)/documents/review         # upload em lote + auto-catalogação + revisão
-      (app)/assistant                                 # chat RAG (base privada + base global)
-      (app)/admin/global-knowledge                    # ingestão da base global (platform_admins)
-      (app)/settings                                  # nome da corretora + equipe/convites
-      billing/                                        # status da assinatura + Checkout/Portal (fora do grupo (app))
-      api/webhooks/stripe                             # webhook do Stripe (única rota com service_role)
+      page.tsx                                       # landing page pública (fora do grupo (app))
+      terms/, privacy/                                # Termos de Uso e Política de Privacidade (públicas)
+      sitemap.ts, robots.ts, opengraph-image.tsx       # SEO
+      (auth)/login, (auth)/signup, auth/callback       # autenticação + aceite de convite
+      (app)/layout.tsx                                 # shell (sidebar, topbar, tema) + gate de assinatura
+      (app)/dashboard                                  # KPIs + gráfico de vencimentos
+      (app)/clients, (app)/clients/[id]                 # CRM (manual, planilha, atribuição de responsável)
+      (app)/policies                                    # apólices (visão geral)
+      (app)/documents, (app)/documents/review            # upload em lote + auto-catalogação + revisão
+      (app)/assistant                                    # chat RAG (base privada + base global)
+      (app)/admin/global-knowledge                       # ingestão da base global (platform_admins)
+      (app)/settings                                     # nome da corretora + equipe/convites
+      billing/                                           # status da assinatura + Checkout/Portal (fora do grupo (app))
+      api/webhooks/stripe                                # webhook do Stripe (única rota com service_role)
 ```
 
 Cada módulo de negócio tem seu próprio `actions.ts`/`*-actions.ts` com Server
@@ -197,6 +214,23 @@ esse webhook, via a função `set_tenant_stripe_customer` (que confere que
 quem chamou é o Admin do tenant) ou via o trigger de criação — nunca direto
 pelo client SDK, pra um Admin não conseguir se auto-liberar editando a
 linha.
+
+**Site de marketing**: `/` é uma landing page pública (hero, funcionalidades,
+como funciona, preço, FAQ) — só redireciona pra `/dashboard` quem já está
+logado (ver a checagem de sessão no topo de `app/page.tsx`). `/terms` e
+`/privacy` são páginas públicas com os rascunhos de Termos de Uso e Política
+de Privacidade (têm um placeholder `[razão social e CNPJ da empresa]` pra
+preencher e idealmente revisar com um advogado antes de depender deles pra
+valer). As três rotas, mais `/sitemap.xml`, `/robots.txt` e
+`/opengraph-image`, estão liberadas em `PUBLIC_PATHS`
+(`lib/supabase/proxy.ts`) — sem isso o proxy redirecionaria qualquer visitante
+não logado pra `/login` antes da página carregar.
+
+**Monitoramento**: o Sentry captura exceções não tratadas em qualquer
+runtime (navegador, Server Actions, edge/proxy) automaticamente, sem precisar
+chamar nada manualmente na maioria dos casos — `instrumentation.ts` e
+`instrumentation-client.ts` cuidam da inicialização. O Vercel Analytics
+registra visitas de página sem cookies; ambos são opcionais (ver passo 3).
 
 ## Segurança
 
