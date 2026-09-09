@@ -41,6 +41,9 @@ das rotinas para manter isso ao longo do tempo.
   Server Actions, edge) — ver `src/instrumentation*.ts` e `sentry.*.config.ts`.
   Better Stack faz ping em `https://corretor-saas.vercel.app` a cada 3 minutos e
   avisa por e-mail se o site cair.
+- **Dependabot alerts, atualizações de segurança automáticas, secret scanning e
+  push protection**: todos ativados no repositório
+  [github.com/rafaschincariol/Vitto-IA-para-Corretores](https://github.com/rafaschincariol/Vitto-IA-para-Corretores).
 
 ## O que ficou fora do escopo (decisão registrada, não esquecimento)
 
@@ -52,9 +55,6 @@ das rotinas para manter isso ao longo do tempo.
   o volume de dados ou exigências de compliance mudarem, revisitar.
 - **Bot protection (CAPTCHA) em login/cadastro**: pulado por decisão explícita.
   Pode ser adicionado depois (ex: Cloudflare Turnstile) sem mudança estrutural.
-- **Dependabot / secret scanning do GitHub**: o repositório já está em
-  [github.com/rafaschincariol/Vitto-IA-para-Corretores](https://github.com/rafaschincariol/Vitto-IA-para-Corretores)
-  — falta ativar as duas em **Settings → Security** (nenhuma ativada ainda).
 - **CSP com nonce (sem `'unsafe-inline'` em `script-src`)**: o Next.js injeta um
   script inline de hidratação em toda página; removê-lo do CSP exigiria gerar um
   nonce por request via middleware — mais invasivo de implementar e testar. Os
