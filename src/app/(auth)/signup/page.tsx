@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { signUpWithPassword } from "../actions";
 import { getInviteInfo, type InviteInfo } from "../invite-actions";
+import { trackEvent } from "@/lib/analytics";
 
 function SignupForm() {
   const searchParams = useSearchParams();
@@ -51,7 +52,11 @@ function SignupForm() {
         </p>
       )}
 
-      <form action={formAction} className="space-y-4">
+      <form
+        action={formAction}
+        onSubmit={() => trackEvent("signup_started")}
+        className="space-y-4"
+      >
         <input type="hidden" name="invite_token" value={inviteToken ?? ""} />
 
         {!inviteToken && (

@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useActionState, useEffect } from "react";
+import { Suspense, useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +16,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { signInWithPassword } from "../actions";
+import { signInWithPassword, resendConfirmationEmail } from "../actions";
+
+function ResendConfirmation({ email }: { email: string }) {
+  const [pending, setPending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function handleResend() {
+    setPending(true);
+    const result = await resendConfirmationEmail(email);
+    setPending(false);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    setSent(true);
+  }
+
+  return (
+    <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={handleResend} disabled={pending || sent}>
+      {sent ? "E-mail reenviado" : pending ? "Reenviando..." : "Reenviar e-mail de confirmação"}
+    </Button>
+  );
+}
 
 function StatusBanner() {
   const searchParams = useSearchParams();
   const confirm = searchParams.get("confirm");
+  const email = searchParams.get("email");
   const reset = searchParams.get("reset");
 
   // Dispara uma vez só, quando a tela carrega vindo do cadastro — é aqui
@@ -32,9 +56,11 @@ function StatusBanner() {
 
   if (confirm === "1") {
     return (
-      <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-        Conta criada! Verifique seu e-mail para confirmar o cadastro antes de entrar.
-      </p>
+      <div className="space-y-2 rounded-md bg-muted p-3 text-sm text-muted-foreground">
+        <p>Conta criada! Verifique seu e-mail para confirmar o cadastro antes de entrar.</p>
+        <p>Não chegou? Confira a caixa de spam/lixo eletrônico.</p>
+        {email && <ResendConfirmation email={email} />}
+      </div>
     );
   }
 

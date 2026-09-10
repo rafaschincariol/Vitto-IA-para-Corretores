@@ -5,7 +5,10 @@ import { requireProfile } from "@/lib/data/auth";
 import { askAssistant, type AssistantAnswer, type ChatMessage } from "@/lib/ai/assistant";
 import { logActivity } from "@/lib/log-activity";
 
-export async function sendChatMessage(question: string, history: ChatMessage[]): Promise<AssistantAnswer> {
+export async function sendChatMessage(
+  question: string,
+  history: ChatMessage[]
+): Promise<AssistantAnswer & { firstQuestion?: boolean }> {
   const { tenant } = await requireProfile();
   const supabase = await createSupabaseClient();
 
@@ -13,13 +16,15 @@ export async function sendChatMessage(question: string, history: ChatMessage[]):
     const answer = await askAssistant(supabase, tenant.id, question, history);
     // Idempotente e barato: a cláusula where já filtra pra só escrever na
     // primeira vez (fica sem efeito nas perguntas seguintes). Alimenta o
-    // checklist de primeiros passos do Dashboard.
-    await supabase
+    // checklist de primeiros passos do Dashboard e o evento de funil
+    // "first_assistant_question" (disparado no cliente, ver chat.tsx).
+    const { data } = await supabase
       .from("tenants")
       .update({ onboarding_asked_assistant: true })
       .eq("id", tenant.id)
-      .eq("onboarding_asked_assistant", false);
-    return answer;
+      .eq("onboarding_asked_assistant", false)
+      .select("id");
+    return { ...answer, firstQuestion: Boolean(data && data.length > 0) };
   } catch (err) {
     await logActivity(supabase, {
       tenantId: tenant.id,

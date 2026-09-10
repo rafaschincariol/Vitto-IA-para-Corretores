@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { sendChatMessage, getCitationUrl } from "./chat-actions";
 import type { Citation, ChatMessage } from "@/lib/ai/assistant";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type DisplayMessage = ChatMessage & { citations?: Citation[] };
@@ -47,6 +48,7 @@ export function AssistantChat({ hasPolicies = true }: { hasPolicies?: boolean })
 
     try {
       const result = await sendChatMessage(question, history);
+      if (result.firstQuestion) trackEvent("first_assistant_question");
       setMessages((prev) => [...prev, { role: "assistant", content: result.answer, citations: result.citations }]);
     } catch {
       toast.error("Não foi possível falar com o assistente agora.");

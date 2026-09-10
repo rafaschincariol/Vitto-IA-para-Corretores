@@ -5,11 +5,13 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { extractPolicyData } from "@/lib/ai/extract-document";
 import { ingestDocumentChunks } from "@/lib/ai/ingest-chunks";
+import { markFirstPolicyIfNeeded } from "@/lib/funnel-events";
 
 export type AutoProcessResult = {
   error: string | null;
   clientId?: string;
   policyId?: string | null;
+  firstPolicy?: boolean;
 };
 
 // Upload em lote "zero digitação": chamada uma vez por documento logo após
@@ -109,12 +111,14 @@ export async function autoProcessDocument(documentId: string): Promise<AutoProce
 
     await ingestDocumentChunks(supabase, tenant.id, documentId, extracted.full_text);
 
+    const firstPolicy = policyId ? await markFirstPolicyIfNeeded(supabase, tenant.id) : false;
+
     revalidatePath("/documents");
     revalidatePath("/documents/review");
     revalidatePath("/clients");
     revalidatePath("/policies");
 
-    return { error: null, clientId: client.id, policyId };
+    return { error: null, clientId: client.id, policyId, firstPolicy };
   } catch {
     await supabase.from("documents").update({ status: "error" }).eq("id", documentId);
     return { error: "Não foi possível extrair os dados do documento com a IA." };

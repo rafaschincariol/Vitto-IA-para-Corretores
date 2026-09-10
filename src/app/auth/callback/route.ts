@@ -6,13 +6,18 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const explicitNext = searchParams.get("next");
+  const next = explicitNext ?? "/dashboard";
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      // Sem "next" explícito, só a confirmação de e-mail de cadastro cai
+      // aqui (reset de senha e outros fluxos sempre passam "next") — marca
+      // pro dashboard disparar o evento de funil "email_confirmed" uma vez.
+      const suffix = explicitNext ? "" : "?welcome=1";
+      return NextResponse.redirect(`${origin}${next}${suffix}`);
     }
   }
 

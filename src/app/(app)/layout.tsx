@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 import { Menu } from "lucide-react";
 import { requireProfile } from "@/lib/data/auth";
 import { getTenantSubscription, isSubscriptionLocked } from "@/lib/data/billing";
@@ -10,15 +10,20 @@ import { SubscriptionLockedScreen } from "@/components/subscription-locked-scree
 import { AccountDeletionLockedScreen } from "@/components/account-deletion-locked-screen";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { FunnelBeacon } from "./funnel-beacon";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const { profile, tenant } = await requireProfile();
   const supabase = await createSupabaseClient();
   const subscription = await getTenantSubscription(supabase, tenant.id);
   const locked = isSubscriptionLocked(subscription);
+  const justConverted = subscription?.status === "active" && !subscription.paid_conversion_tracked;
 
   return (
     <div className="flex min-h-screen">
+      <Suspense fallback={null}>
+        <FunnelBeacon justConverted={justConverted} />
+      </Suspense>
       <aside className="hidden w-56 shrink-0 border-r bg-sidebar text-sidebar-foreground md:flex md:flex-col">
         <div className="border-b px-4 py-4">
           <p className="truncate text-sm font-semibold">{tenant.name}</p>

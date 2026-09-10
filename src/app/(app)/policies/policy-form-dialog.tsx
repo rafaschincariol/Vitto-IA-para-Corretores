@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { createPolicyRecord, updatePolicyRecord, type PolicyFormState } from "./actions";
 import { POLICY_STATUS_LABELS, type Policy, type PolicyStatus } from "@/lib/types";
+import { trackEvent } from "@/lib/analytics";
 
 const initialState: PolicyFormState = { error: null };
 const STATUS_OPTIONS = Object.entries(POLICY_STATUS_LABELS) as [PolicyStatus, string][];
@@ -48,6 +49,7 @@ export function PolicyFormDialog({
     if (pending) submittedRef.current = true;
     if (!pending && submittedRef.current && !state.error) {
       submittedRef.current = false;
+      if (state.firstPolicy) trackEvent("first_policy_created");
       setOpen(false);
     }
   }, [pending, state]);

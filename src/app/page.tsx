@@ -34,9 +34,9 @@ const FEATURES: {
   },
   {
     icon: Users,
-    title: "CRM completo da carteira",
+    title: "Sua carteira, fora da planilha",
     description:
-      "Clientes, apólices, prêmios e vencimentos num só lugar, buscável por nome, CPF/CNPJ, e-mail ou telefone.",
+      "O CRM da sua carteira de seguros: ache qualquer cliente ou apólice em segundos, por nome, CPF/CNPJ, e-mail ou telefone — sem rolar planilha nem abrir pasta atrás de pasta.",
   },
   {
     icon: CalendarClock,
@@ -59,9 +59,9 @@ const FEATURES: {
   },
   {
     icon: ShieldCheck,
-    title: "Isolamento de verdade",
+    title: "Seus dados, só seus",
     description:
-      "Cada corretora só enxerga os próprios dados — isolado no banco, não é uma configuração que pode ser esquecida.",
+      "Nenhuma outra corretora no Vitto acessa seus clientes, suas apólices ou seus números — essa separação é garantida por trás dos panos, não depende de ninguém marcar uma caixinha certa.",
   },
 ];
 
@@ -102,7 +102,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Funciona com qualquer seguradora?",
-    a: "Funciona com qualquer apólice em PDF ou foto — a IA lê o documento diretamente, não depende de integração com nenhuma seguradora específica.",
+    a: "Funciona com qualquer seguradora, sem exceção. A IA lê o PDF ou a foto da apólice diretamente — o Vitto não empurra cotação nem venda de nenhuma seguradora específica, é só o sistema da sua carteira.",
   },
   {
     q: "Posso cancelar quando quiser?",
@@ -168,15 +168,15 @@ export default async function Home() {
         <section className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="secondary" className="mb-5">
-              IA para gestão de carteira de seguros
+              Sistema com IA para corretora de seguros
             </Badge>
             <h1 className="text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-5xl">
-              A IA que cuida da carteira da sua corretora.
+              Chega de planilha. Sua carteira de seguros, organizada por uma IA.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground text-balance">
-              O {siteConfig.name} acompanha clientes, apólices e vencimentos da sua
-              carteira e responde suas perguntas sobre ela — e ainda cadastra
-              apólices sozinho a partir de PDF ou foto.
+              O {siteConfig.name} lê o PDF ou a foto da apólice, cadastra sozinho,
+              avisa o que vence antes que o cliente esqueça e responde qualquer
+              pergunta sobre sua carteira — sem você digitar uma linha.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">

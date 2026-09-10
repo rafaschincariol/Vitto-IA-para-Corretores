@@ -11,6 +11,7 @@ export type Tenant = {
   pending_deletion_at: string | null;
   onboarding_asked_assistant: boolean;
   onboarding_dismissed: boolean;
+  first_policy_event_sent: boolean;
 };
 
 export type Profile = {
@@ -92,6 +93,7 @@ export type TenantSubscription = {
   trial_ends_at: string | null;
   current_period_end: string | null;
   updated_at: string;
+  paid_conversion_tracked: boolean;
 };
 
 export type TenantInvite = {

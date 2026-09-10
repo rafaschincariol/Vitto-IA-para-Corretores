@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { requiredIsoDateSchema, optionalMoneySchema } from "@/lib/validators";
+import { markFirstPolicyIfNeeded } from "@/lib/funnel-events";
 
 const policySchema = z
   .object({
@@ -23,7 +24,7 @@ const policySchema = z
     path: ["end_date"],
   });
 
-export type PolicyFormState = { error: string | null };
+export type PolicyFormState = { error: string | null; firstPolicy?: boolean };
 
 export async function createPolicyRecord(
   _prevState: PolicyFormState,
@@ -45,9 +46,11 @@ export async function createPolicyRecord(
 
   if (error) return { error: "Não foi possível salvar a apólice." };
 
+  const firstPolicy = await markFirstPolicyIfNeeded(supabase, tenant.id);
+
   revalidatePath("/policies");
   revalidatePath(`/clients/${parsed.data.client_id}`);
-  return { error: null };
+  return { error: null, firstPolicy };
 }
 
 export async function updatePolicyRecord(

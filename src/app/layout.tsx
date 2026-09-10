@@ -39,6 +39,21 @@ export const metadata: Metadata = {
   },
 };
 
+// Organization (não SoftwareApplication, isso já existe em page.tsx): quem é
+// a empresa por trás do produto, com CNPJ/razão social — sinal de
+// credibilidade institucional que os buscadores (e diretórios de software)
+// usam pra associar o site a uma empresa real. Fica no layout, não numa
+// página específica, porque representa a empresa como um todo.
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: siteConfig.legalName,
+  alternateName: siteConfig.name,
+  url: siteConfig.url,
+  email: siteConfig.supportEmail,
+  taxID: siteConfig.cnpj,
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -47,6 +62,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         {/* Google Tag Manager — só carrega se NEXT_PUBLIC_GTM_ID estiver
             configurado (Vercel → Environment Variables). Sem isso, fica
             inativo e não afeta nada. Configure Google Ads/Meta Pixel/GA4

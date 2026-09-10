@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Vitto",
   fullName: "Vitto IA para Corretores",
-  tagline: "O assistente de IA que gerencia a carteira da sua corretora.",
+  tagline: "O sistema de IA que gerencia a carteira da sua corretora de seguros.",
   description:
     "O Vitto acompanha cada cliente, apólice e vencimento da sua carteira e responde suas perguntas sobre ela — e ainda cadastra apólices sozinho a partir de PDF ou foto. CRM, vencimentos, assistente e equipe — R$ 49,99/mês por corretora, 14 dias grátis.",
   price: "R$ 49,99",

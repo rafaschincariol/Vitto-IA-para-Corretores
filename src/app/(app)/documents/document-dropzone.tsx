@@ -7,6 +7,7 @@ import { UploadCloud } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { createDocumentRecord } from "./actions";
 import { autoProcessDocument } from "./auto-process-actions";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED_TYPES = ["application/pdf", "image/png", "image/jpeg"];
@@ -107,13 +108,17 @@ export function DocumentDropzone({
       setProgress({ done: 0, total: documentIds.length });
       let created = 0;
       let failed = 0;
+      let firstPolicy = false;
 
       await runWithConcurrency(documentIds, AUTO_PROCESS_CONCURRENCY, async (docId) => {
         const result = await autoProcessDocument(docId);
         if (result.error) failed++;
         else created++;
+        if (result.firstPolicy) firstPolicy = true;
         setProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
       });
+
+      if (firstPolicy) trackEvent("first_policy_created");
 
       if (created > 0) {
         toast.success(`${created} apólice(s) cadastrada(s) automaticamente pela IA.`, {

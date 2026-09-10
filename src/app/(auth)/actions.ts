@@ -117,7 +117,33 @@ export async function signUpWithPassword(
     return { error: alreadyRegistered ? "Este e-mail já está cadastrado." : "Não foi possível criar a conta." };
   }
 
-  redirect("/login?confirm=1");
+  redirect(`/login?confirm=1&email=${encodeURIComponent(email)}`);
+}
+
+// Reenvio do e-mail de confirmação — sem isso, quem não recebe (ou não vê
+// por causa do spam) ficava travado sem nenhuma saída além de tentar
+// cadastrar de novo (e esbarrar no "e-mail já cadastrado"). Mesma
+// anti-enumeração do reset de senha: sempre responde sucesso.
+export async function resendConfirmationEmail(email: string): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({ type: "signup", email });
+
+  if (error) {
+    const rateLimited = isMailerRateLimitError(error.message);
+    await logActivity(supabase, {
+      category: "sistema",
+      eventType: rateLimited ? "email_rate_limited" : "resend_confirmation_failed",
+      level: "erro",
+      message: rateLimited
+        ? `Reenvio de confirmação de cadastro pra ${email} falhou: o limite de envio de e-mails do Resend foi atingido. Novos e-mails vão falhar até o limite renovar — considere aumentar o plano do Resend.`
+        : `Reenvio de confirmação de cadastro falhou para ${email}: ${error.message}`,
+      metadata: { email, reason: error.message },
+    });
+    return { error: "Não foi possível reenviar agora. Tente de novo em instantes." };
+  }
+
+  return { error: null };
 }
 
 export async function signOut() {
