@@ -1,9 +1,11 @@
 import { FileCheck2, Wallet, TrendingUp } from "lucide-react";
 import { getDashboardData } from "@/lib/data/dashboard";
+import { requireProfile } from "@/lib/data/auth";
+import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { KpiCard } from "@/components/kpi-card";
 import { RenewalsChart } from "@/components/renewals-chart";
 import { AssistantQuickAsk } from "./assistant-quick-ask";
-import { EmptyPortfolioNudge } from "./empty-portfolio-nudge";
+import { OnboardingChecklist } from "./onboarding-checklist";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -11,7 +13,13 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 });
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const { tenant } = await requireProfile();
+  const supabase = await createSupabaseClient();
+
+  const [data, { count: memberCount }] = await Promise.all([
+    getDashboardData(),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -22,9 +30,15 @@ export default async function DashboardPage() {
 
       <AssistantQuickAsk />
 
-      {data.totalPolicies === 0 ? (
-        <EmptyPortfolioNudge />
-      ) : (
+      {!tenant.onboarding_dismissed && (
+        <OnboardingChecklist
+          hasPolicies={data.totalPolicies > 0}
+          askedAssistant={tenant.onboarding_asked_assistant}
+          hasTeam={(memberCount ?? 1) > 1}
+        />
+      )}
+
+      {data.totalPolicies > 0 && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <KpiCard title="Apólices ativas" value={String(data.activePolicies)} icon={FileCheck2} />

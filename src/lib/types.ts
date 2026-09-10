@@ -9,6 +9,8 @@ export type Tenant = {
   name: string;
   created_at: string;
   pending_deletion_at: string | null;
+  onboarding_asked_assistant: boolean;
+  onboarding_dismissed: boolean;
 };
 
 export type Profile = {

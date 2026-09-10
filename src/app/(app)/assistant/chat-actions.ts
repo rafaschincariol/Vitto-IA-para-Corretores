@@ -10,7 +10,16 @@ export async function sendChatMessage(question: string, history: ChatMessage[]):
   const supabase = await createSupabaseClient();
 
   try {
-    return await askAssistant(supabase, tenant.id, question, history);
+    const answer = await askAssistant(supabase, tenant.id, question, history);
+    // Idempotente e barato: a cláusula where já filtra pra só escrever na
+    // primeira vez (fica sem efeito nas perguntas seguintes). Alimenta o
+    // checklist de primeiros passos do Dashboard.
+    await supabase
+      .from("tenants")
+      .update({ onboarding_asked_assistant: true })
+      .eq("id", tenant.id)
+      .eq("onboarding_asked_assistant", false);
+    return answer;
   } catch (err) {
     await logActivity(supabase, {
       tenantId: tenant.id,
