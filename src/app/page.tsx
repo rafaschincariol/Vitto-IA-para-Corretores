@@ -9,6 +9,7 @@ import {
   Sparkles,
   UsersRound,
   ShieldCheck,
+  Building2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -196,6 +197,16 @@ export default async function Home() {
               Funciona com qualquer seguradora — o Vitto não vende seguro nem tem
               parceria com nenhuma, é só o sistema da sua carteira.
             </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Building2 className="size-3.5" />
+                Empresa registrada no Brasil — CNPJ {siteConfig.cnpj}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="size-3.5" />
+                Dados isolados por corretora, conforme a LGPD
+              </span>
+            </div>
           </div>
 
           <div className="mx-auto mt-14 max-w-4xl">
