@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Loader2, ScanText, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,11 +19,24 @@ const SUGGESTIONS = [
   "O que geralmente cobre um seguro residencial contra incêndio?",
 ];
 
-export function AssistantChat() {
+export function AssistantChat({ hasPolicies = true }: { hasPolicies?: boolean }) {
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const autoSentRef = useRef(false);
+
+  // Chegada vinda do cartão "Pergunte ao Vitto" no Dashboard (?q=...) —
+  // dispara a pergunta automaticamente uma única vez ao montar.
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q && !autoSentRef.current) {
+      autoSentRef.current = true;
+      void send(q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   async function send(question: string) {
     if (!question.trim() || pending) return;
@@ -62,7 +77,31 @@ export function AssistantChat() {
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-lg border">
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        {messages.length === 0 && (
+        {messages.length === 0 && !hasPolicies && (
+          <div className="flex h-full flex-col items-center justify-center gap-4 text-center text-muted-foreground">
+            <ScanText className="size-8 text-primary" />
+            <div className="max-w-sm">
+              <p className="font-medium text-foreground">Ainda não tenho dados da sua carteira</p>
+              <p className="text-sm">
+                Cadastre sua primeira apólice (PDF ou foto) e eu passo a responder com dados reais —
+                quem vence, quando e com qual seguradora.
+              </p>
+            </div>
+            <Button asChild size="sm">
+              <Link href="/documents">Enviar apólice agora</Link>
+            </Button>
+            <p className="text-xs">Ou pergunte algo geral sobre seguros enquanto isso:</p>
+            <div className="flex flex-col gap-2">
+              {SUGGESTIONS.filter((s) => !s.toLowerCase().includes("carteira") && !s.toLowerCase().includes("vencem")).map((s) => (
+                <Button key={s} type="button" variant="outline" size="sm" onClick={() => void send(s)}>
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.length === 0 && hasPolicies && (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center text-muted-foreground">
             <Sparkles className="size-8" />
             <div>

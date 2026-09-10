@@ -7,10 +7,10 @@ import { LayoutDashboard, Users, FileText, FolderOpen, Sparkles, Settings, Credi
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/assistant", label: "Assistente IA", icon: Sparkles, highlight: true },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/policies", label: "Apólices", icon: FileText },
   { href: "/documents", label: "Documentos", icon: FolderOpen },
-  { href: "/assistant", label: "Assistente", icon: Sparkles },
   { href: "/billing", label: "Assinatura", icon: CreditCard },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
@@ -31,10 +31,12 @@ export function AppSidebarNav({ className }: { className?: string }) {
               "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
               active
                 ? "bg-secondary text-secondary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : item.highlight
+                  ? "text-primary hover:bg-muted"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            <Icon className="size-4" />
+            <Icon className={cn("size-4", !active && item.highlight && "text-primary")} />
             {item.label}
           </Link>
         );

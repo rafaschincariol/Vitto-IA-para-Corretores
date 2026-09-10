@@ -4,6 +4,7 @@ import type { Policy } from "@/lib/types";
 
 export type DashboardData = {
   activePolicies: number;
+  totalPolicies: number;
   totalPremium: number;
   renewalRate: number;
   renewalBuckets: { label: string; count: number }[];
@@ -23,7 +24,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     .returns<Pick<Policy, "id" | "status" | "premium_total" | "end_date">[]>();
 
   if (error || !policies) {
-    return { activePolicies: 0, totalPremium: 0, renewalRate: 0, renewalBuckets: [] };
+    return { activePolicies: 0, totalPolicies: 0, totalPremium: 0, renewalRate: 0, renewalBuckets: [] };
   }
 
   const active = policies.filter((p) => p.status === "ativo" || p.status === "em_renovacao");
@@ -56,6 +57,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   return {
     activePolicies: active.length,
+    totalPolicies: policies.length,
     totalPremium,
     renewalRate,
     renewalBuckets: buckets.map(({ label, count }) => ({ label, count })),

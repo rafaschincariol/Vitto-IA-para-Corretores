@@ -1,6 +1,10 @@
+import { Suspense } from "react";
+import { getDashboardData } from "@/lib/data/dashboard";
 import { AssistantChat } from "./chat";
 
-export default function AssistantPage() {
+export default async function AssistantPage() {
+  const { totalPolicies } = await getDashboardData();
+
   return (
     <div className="space-y-6">
       <div>
@@ -9,7 +13,9 @@ export default function AssistantPage() {
           Pergunte em linguagem natural sobre sua carteira ou sobre condições gerais de seguros.
         </p>
       </div>
-      <AssistantChat />
+      <Suspense fallback={null}>
+        <AssistantChat hasPolicies={totalPolicies > 0} />
+      </Suspense>
     </div>
   );
 }
