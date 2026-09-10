@@ -46,10 +46,14 @@ function ResendConfirmation({ email }: { email: string }) {
 
 // Usado quando o link de confirmação chega expirado/inválido no callback —
 // nesse ponto não temos mais o e-mail na URL, então pedimos de novo.
+// O form continua disponível mesmo depois de enviar (não vira um texto
+// estático) — se o segundo e-mail também não chegar, ou a pessoa digitou
+// errado da primeira vez, precisa dar pra tentar de novo sem recarregar a
+// página.
 function ExpiredLinkResend() {
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sentOnce, setSentOnce] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -61,15 +65,8 @@ function ExpiredLinkResend() {
       toast.error(result.error);
       return;
     }
-    setSent(true);
-  }
-
-  if (sent) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Enviamos um novo e-mail de confirmação — confira sua caixa de entrada (e o spam).
-      </p>
-    );
+    setSentOnce(true);
+    toast.success("E-mail enviado — confira sua caixa de entrada (e o spam).");
   }
 
   return (
@@ -83,7 +80,7 @@ function ExpiredLinkResend() {
         className="h-9"
       />
       <Button type="submit" size="sm" disabled={pending}>
-        {pending ? "Enviando..." : "Reenviar confirmação"}
+        {pending ? "Enviando..." : sentOnce ? "Enviar de novo" : "Reenviar confirmação"}
       </Button>
     </form>
   );

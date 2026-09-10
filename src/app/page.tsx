@@ -174,9 +174,9 @@ export default async function Home() {
               Chega de planilha. Sua carteira de seguros, organizada por uma IA.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground text-balance">
-              O {siteConfig.name} lê o PDF ou a foto da apólice, cadastra sozinho,
-              avisa o que vence antes que o cliente esqueça e responde qualquer
-              pergunta sobre sua carteira — você só confere.
+              O {siteConfig.name} lê o PDF ou a foto da apólice e cadastra sozinho —
+              você só confere. Também avisa o que vence antes que o cliente esqueça,
+              e responde qualquer pergunta sobre sua carteira.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
@@ -190,8 +190,11 @@ export default async function Home() {
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Sem cartão de crédito para testar · Cancele quando quiser · Funciona com
-              qualquer seguradora, sem empurrar nenhuma
+              Sem cartão de crédito para testar · Cancele quando quiser
+            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Funciona com qualquer seguradora — o Vitto não vende seguro nem tem
+              parceria com nenhuma, é só o sistema da sua carteira.
             </p>
           </div>
 
@@ -211,7 +214,7 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold tracking-tight text-balance">
-                O CRM completo da sua corretora de seguros, num painel só
+                Tudo que sua corretora de seguros precisa, num painel só
               </h2>
               <p className="mt-3 text-muted-foreground">
                 Construído em cima do que consome mais tempo numa corretora:
