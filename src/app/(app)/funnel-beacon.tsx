@@ -3,7 +3,10 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
+import { siteConfig } from "@/lib/site-config";
 import { markPaidConversionTracked } from "./funnel-actions";
+
+const priceValue = Number(siteConfig.price.replace(/[^\d,]/g, "").replace(",", "."));
 
 // Dois eventos de funil que só têm como disparar no próximo carregamento
 // de página (não no momento exato em que acontecem no servidor):
@@ -21,7 +24,9 @@ export function FunnelBeacon({ justConverted }: { justConverted: boolean }) {
 
   useEffect(() => {
     if (justConverted) {
-      trackEvent("subscription_activated");
+      // value/currency: sem isso, quando o GTM for ativado, Google
+      // Ads/Meta só veem "aconteceu", sem base pra lance por valor/ROAS.
+      trackEvent("subscription_activated", { value: priceValue, currency: "BRL" });
       void markPaidConversionTracked();
     }
   }, [justConverted]);

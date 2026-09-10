@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useActionState, useEffect, useState } from "react";
+import { Suspense, useActionState, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -18,11 +18,42 @@ import {
 } from "@/components/ui/card";
 import { signInWithPassword, resendConfirmationEmail } from "../actions";
 
+// Sem `sent` travando o disabled pra sempre: se o segundo e-mail também não
+// chegar (rate limit, pasta errada), a pessoa precisa conseguir tentar de
+// novo, não ficar presa num botão morto.
 function ResendConfirmation({ email }: { email: string }) {
+  const [pending, setPending] = useState(false);
+  const [sentOnce, setSentOnce] = useState(false);
+
+  async function handleResend() {
+    setPending(true);
+    const result = await resendConfirmationEmail(email);
+    setPending(false);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    setSentOnce(true);
+    toast.success("E-mail reenviado.");
+  }
+
+  return (
+    <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={handleResend} disabled={pending}>
+      {pending ? "Reenviando..." : sentOnce ? "Reenviar de novo" : "Reenviar e-mail de confirmação"}
+    </Button>
+  );
+}
+
+// Usado quando o link de confirmação chega expirado/inválido no callback —
+// nesse ponto não temos mais o e-mail na URL, então pedimos de novo.
+function ExpiredLinkResend() {
+  const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  async function handleResend() {
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!email) return;
     setPending(true);
     const result = await resendConfirmationEmail(email);
     setPending(false);
@@ -33,10 +64,28 @@ function ResendConfirmation({ email }: { email: string }) {
     setSent(true);
   }
 
+  if (sent) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Enviamos um novo e-mail de confirmação — confira sua caixa de entrada (e o spam).
+      </p>
+    );
+  }
+
   return (
-    <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={handleResend} disabled={pending || sent}>
-      {sent ? "E-mail reenviado" : pending ? "Reenviando..." : "Reenviar e-mail de confirmação"}
-    </Button>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
+      <Input
+        type="email"
+        placeholder="Seu e-mail"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="h-9"
+      />
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "Enviando..." : "Reenviar confirmação"}
+      </Button>
+    </form>
   );
 }
 
@@ -51,7 +100,11 @@ function StatusBanner() {
   // src/lib/analytics.ts), não dentro da Server Action de signup, porque
   // dataLayer só existe no navegador.
   useEffect(() => {
-    if (confirm === "1") trackEvent("sign_up_completed");
+    // Nome não é "sign_up_completed": nesse ponto o cadastro foi só
+    // submetido, o e-mail ainda não foi confirmado (isso é o evento
+    // "email_confirmed", disparado depois — ver FunnelBeacon). Nome errado
+    // aqui inflaria a taxa de conversão de cadastro nos relatórios.
+    if (confirm === "1") trackEvent("signup_submitted");
   }, [confirm]);
 
   if (confirm === "1") {
@@ -60,6 +113,16 @@ function StatusBanner() {
         <p>Conta criada! Verifique seu e-mail para confirmar o cadastro antes de entrar.</p>
         <p>Não chegou? Confira a caixa de spam/lixo eletrônico.</p>
         {email && <ResendConfirmation email={email} />}
+      </div>
+    );
+  }
+
+  if (searchParams.get("error") === "auth") {
+    return (
+      <div className="space-y-2 rounded-md bg-destructive/10 p-3 text-sm">
+        <p className="text-destructive">Link de confirmação expirado ou inválido.</p>
+        <p className="text-muted-foreground">Informe seu e-mail pra receber um novo link.</p>
+        <ExpiredLinkResend />
       </div>
     );
   }

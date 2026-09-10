@@ -36,7 +36,7 @@ const FEATURES: {
     icon: Users,
     title: "Sua carteira, fora da planilha",
     description:
-      "O CRM da sua carteira de seguros: ache qualquer cliente ou apólice em segundos, por nome, CPF/CNPJ, e-mail ou telefone — sem rolar planilha nem abrir pasta atrás de pasta.",
+      "Ache qualquer cliente ou apólice em segundos, por nome, CPF/CNPJ, e-mail ou telefone — sem rolar planilha nem abrir pasta atrás de pasta.",
   },
   {
     icon: CalendarClock,
@@ -176,7 +176,7 @@ export default async function Home() {
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground text-balance">
               O {siteConfig.name} lê o PDF ou a foto da apólice, cadastra sozinho,
               avisa o que vence antes que o cliente esqueça e responde qualquer
-              pergunta sobre sua carteira — sem você digitar uma linha.
+              pergunta sobre sua carteira — você só confere.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
@@ -190,7 +190,8 @@ export default async function Home() {
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Sem cartão de crédito para testar · Cancele quando quiser
+              Sem cartão de crédito para testar · Cancele quando quiser · Funciona com
+              qualquer seguradora, sem empurrar nenhuma
             </p>
           </div>
 
@@ -210,7 +211,7 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold tracking-tight text-balance">
-                Tudo que sua corretora precisa, num painel só
+                O CRM completo da sua corretora de seguros, num painel só
               </h2>
               <p className="mt-3 text-muted-foreground">
                 Construído em cima do que consome mais tempo numa corretora:
