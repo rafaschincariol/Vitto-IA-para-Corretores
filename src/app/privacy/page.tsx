@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade",
-  description: `Como a ${siteConfig.name} trata dados pessoais, em conformidade com a LGPD.`,
+  description: `Como o ${siteConfig.name} trata dados pessoais, em conformidade com a LGPD.`,
 };
 
 export default function PrivacyPage() {
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-heading text-lg font-medium">1. Quem somos</h2>
             <p className="mt-2 text-muted-foreground">
-              A {siteConfig.name} ({siteConfig.fullName}) é operada por{" "}
+              O {siteConfig.name} ({siteConfig.fullName}) é operado por{" "}
               <strong>{siteConfig.legalName}</strong> (CNPJ {siteConfig.cnpj}),
               controladora dos
               dados coletados diretamente do corretor cadastrado e operadora dos
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
                 <strong>Dados de clientes da corretora:</strong> nome, CPF/CNPJ,
                 contato e dados de apólices que o corretor insere manualmente, por
                 planilha ou por upload de documento. Esses dados pertencem a
-                terceiros que não têm relação direta com a {siteConfig.name} — o
+                terceiros que não têm relação direta com o {siteConfig.name} — o
                 corretor é responsável por ter base legal para tratá-los (ver
                 nossos{" "}
                 <a href="/terms" className="underline underline-offset-2">

@@ -48,7 +48,7 @@ const FEATURES: {
     icon: ScanText,
     title: "Cadastro automático por IA",
     description:
-      "Envie o PDF ou a foto da apólice. A Vitto lê o documento, identifica o cliente e a apólice e preenche tudo sozinha — você só confere.",
+      "Envie o PDF ou a foto da apólice. O Vitto lê o documento, identifica o cliente e a apólice e preenche tudo sozinho — você só confere.",
     visual: <HeroMockup />,
   },
   {
@@ -94,7 +94,7 @@ const PRICING_ITEMS = [
 const FAQ_ITEMS = [
   {
     q: "Preciso saber mexer em sistema pra usar?",
-    a: "Não. Se você sabe enviar um PDF por e-mail, sabe usar a Vitto. O cadastro de apólices é automático — você só confere o que a IA extraiu.",
+    a: "Não. Se você sabe enviar um PDF por e-mail, sabe usar o Vitto. O cadastro de apólices é automático — você só confere o que a IA extraiu.",
   },
   {
     q: "Meus dados e os dos meus clientes ficam seguros?",
@@ -139,9 +139,9 @@ export default async function Home() {
               A IA que cuida da carteira da sua corretora.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground text-balance">
-              A {siteConfig.name} acompanha clientes, apólices e vencimentos da sua
+              O {siteConfig.name} acompanha clientes, apólices e vencimentos da sua
               carteira e responde suas perguntas sobre ela — e ainda cadastra
-              apólices sozinha a partir de PDF ou foto.
+              apólices sozinho a partir de PDF ou foto.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
@@ -162,7 +162,7 @@ export default async function Home() {
           <div className="mx-auto mt-14 max-w-4xl">
             <BrowserFrame
               src="/marketing/dashboard.png"
-              alt="Dashboard da Vitto mostrando apólices ativas, prêmio total, taxa de renovação e o painel de vencimentos da carteira"
+              alt="Dashboard do Vitto mostrando apólices ativas, prêmio total, taxa de renovação e o painel de vencimentos da carteira"
               width={1440}
               height={900}
               priority
@@ -206,7 +206,7 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold tracking-tight text-balance">
-                Veja a Vitto cuidando da carteira de verdade
+                Veja o Vitto cuidando da carteira de verdade
               </h2>
             </div>
 
@@ -223,7 +223,7 @@ export default async function Home() {
               </div>
               <BrowserFrame
                 src="/marketing/clients.png"
-                alt="Tela de clientes da Vitto mostrando a carteira completa de uma corretora, com busca e dados de contato"
+                alt="Tela de clientes do Vitto mostrando a carteira completa de uma corretora, com busca e dados de contato"
                 width={1440}
                 height={900}
               />
@@ -232,7 +232,7 @@ export default async function Home() {
             <div className="mt-16 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
               <BrowserFrame
                 src="/marketing/assistant.png"
-                alt="Assistente de IA da Vitto respondendo, com dados reais da carteira, quais apólices vencem nos próximos 30 dias"
+                alt="Assistente de IA do Vitto respondendo, com dados reais da carteira, quais apólices vencem nos próximos 30 dias"
                 width={1440}
                 height={900}
                 className="lg:order-2"
@@ -242,7 +242,7 @@ export default async function Home() {
                   Pergunte, não procure
                 </h3>
                 <p className="mt-3 text-muted-foreground">
-                  A assistente de IA responde com dados reais da sua carteira —
+                  O assistente de IA responde com dados reais da sua carteira —
                   quem vence, quando e com qual seguradora — e também sobre
                   condições gerais de seguros, sempre citando a fonte.
                 </p>

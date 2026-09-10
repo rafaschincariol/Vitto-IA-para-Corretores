@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Termos de Uso",
-  description: `Condições de uso da ${siteConfig.name}.`,
+  description: `Condições de uso do ${siteConfig.name}.`,
 };
 
 export default function TermsPage() {
@@ -20,9 +20,9 @@ export default function TermsPage() {
 
         <div className="prose-legal mt-8 space-y-8 text-sm leading-relaxed text-foreground">
           <section>
-            <h2 className="font-heading text-lg font-medium">1. O que é a {siteConfig.name}</h2>
+            <h2 className="font-heading text-lg font-medium">1. O que é o {siteConfig.name}</h2>
             <p className="mt-2 text-muted-foreground">
-              A {siteConfig.name} ({siteConfig.fullName}) é um software como
+              O {siteConfig.name} ({siteConfig.fullName}) é um software como
               serviço (SaaS) para gestão de carteira de corretoras de seguros,
               operado por <strong>{siteConfig.legalName}</strong> (CNPJ{" "}
               {siteConfig.cnpj}). Ao
@@ -63,10 +63,10 @@ export default function TermsPage() {
             <p className="mt-2 text-muted-foreground">
               Os dados de clientes finais (nome, CPF/CNPJ, contato, apólices)
               que você insere na plataforma pertencem a terceiros que não têm
-              relação direta com a {siteConfig.name}. Você é o controlador
+              relação direta com o {siteConfig.name}. Você é o controlador
               desses dados perante seus clientes, e é responsável por ter base
               legal para tratá-los (por exemplo, a relação de corretagem já
-              existente). A {siteConfig.name} atua como operadora,
+              existente). O {siteConfig.name} atua como operador,
               processando esses dados apenas para prestar o serviço contratado
               por você.
             </p>
@@ -96,7 +96,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-heading text-lg font-medium">7. Limitação de responsabilidade</h2>
             <p className="mt-2 text-muted-foreground">
-              A {siteConfig.name} é fornecida &quot;como está&quot;. Fazemos o possível
+              O {siteConfig.name} é fornecido &quot;como está&quot;. Fazemos o possível
               para manter o serviço disponível e os dados extraídos por IA
               corretos, mas não garantimos disponibilidade ininterrupta nem
               precisão absoluta da extração automática — a conferência final é
