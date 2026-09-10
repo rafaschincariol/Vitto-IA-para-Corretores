@@ -24,7 +24,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { createTeamInvite, revokeTeamInvite, type InviteFormState } from "./team-actions";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { createTeamInvite, removeTeamMember, revokeTeamInvite, type InviteFormState } from "./team-actions";
 import { ROLE_LABELS, type Profile, type TenantInvite } from "@/lib/types";
 
 const initialState: InviteFormState = { error: null };
@@ -124,9 +125,11 @@ function InviteDialog() {
 export function TeamSection({
   members,
   invites,
+  currentProfileId,
 }: {
   members: Profile[];
   invites: TenantInvite[];
+  currentProfileId: string;
 }) {
   return (
     <div className="space-y-6">
@@ -147,15 +150,26 @@ export function TeamSection({
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>Papel</TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.map((m) => (
               <TableRow key={m.id}>
-                <TableCell className="font-medium">{m.full_name ?? "—"}</TableCell>
+                <TableCell className="font-medium">
+                  {m.full_name ?? "—"}
+                  {m.id === currentProfileId && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">(você)</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground">{m.email}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{ROLE_LABELS[m.role]}</Badge>
+                </TableCell>
+                <TableCell>
+                  {m.id !== currentProfileId && (
+                    <ConfirmDeleteButton id={m.id} label="membro da equipe" action={removeTeamMember} />
+                  )}
                 </TableCell>
               </TableRow>
             ))}

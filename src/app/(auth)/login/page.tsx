@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useActionState } from "react";
+import { Suspense, useActionState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,14 @@ function StatusBanner() {
   const searchParams = useSearchParams();
   const confirm = searchParams.get("confirm");
   const reset = searchParams.get("reset");
+
+  // Dispara uma vez só, quando a tela carrega vindo do cadastro — é aqui
+  // que marcamos a conversão pro Google/Meta Ads (ver
+  // src/lib/analytics.ts), não dentro da Server Action de signup, porque
+  // dataLayer só existe no navegador.
+  useEffect(() => {
+    if (confirm === "1") trackEvent("sign_up_completed");
+  }, [confirm]);
 
   if (confirm === "1") {
     return (

@@ -36,7 +36,9 @@ export default async function SettingsPage() {
 
       <SettingsForm tenantName={tenant.name} />
 
-      {isOwner && <TeamSection members={members} invites={invites} />}
+      {isOwner && (
+        <TeamSection members={members} invites={invites} currentProfileId={profile.id} />
+      )}
 
       {isOwner && <DangerZone tenantName={tenant.name} />}
     </div>

@@ -145,9 +145,22 @@ export default async function Home() {
     },
   };
 
+  // FAQPage: ajuda o Google a mostrar as perguntas direto no resultado de
+  // busca (rich snippet) — mesmo conteúdo do FAQ_ITEMS renderizado abaixo.
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ_ITEMS.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+
   return (
     <div className="flex min-h-full flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <MarketingNav />
 
       <main className="flex-1">
