@@ -96,3 +96,46 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function requestPasswordReset(
+  _prevState: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "Informe seu e-mail." };
+  }
+
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+
+  // Sempre redireciona pro mesmo lugar, exista ou não conta com esse e-mail —
+  // não dá pra revelar quais e-mails têm cadastro.
+  redirect("/login?reset=requested");
+}
+
+export async function updatePassword(
+  _prevState: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const password = String(formData.get("password") ?? "");
+
+  if (password.length < 8) {
+    return { error: "A senha precisa ter pelo menos 8 caracteres." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: "Link inválido ou expirado. Solicite um novo em \"Esqueci minha senha\"." };
+  }
+
+  await supabase.auth.signOut();
+  redirect("/login?reset=success");
+}
