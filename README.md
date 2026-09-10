@@ -92,6 +92,12 @@ vira o Admin dela.
 **Teste de isolamento (RLS)**: crie uma segunda conta (outro e-mail/aba
 anônima) e confirme que cada uma só enxerga seus próprios clientes/apólices/documentos.
 
+**Testes automatizados** (auth, billing/Stripe, exclusão de tenant, validadores):
+
+```bash
+npm test
+```
+
 ## 4. Deploy
 
 **Frontend (Vercel)**:
