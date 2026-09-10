@@ -50,11 +50,20 @@ export default function TermsPage() {
               A assinatura é mensal, no valor de {siteConfig.price}{" "}
               {siteConfig.priceInterval}, cobrada por corretora (não por
               usuário) e processada pelo Stripe. Novas contas têm{" "}
-              {siteConfig.trialDays} dias de teste grátis. Após o período de
-              teste, sem uma assinatura ativa, o acesso à ferramenta fica
-              bloqueado até a assinatura ser feita. Você pode cancelar a
-              qualquer momento pelo painel de assinatura — o cancelamento vale
-              até o fim do período já pago, sem reembolso proporcional.
+              {siteConfig.trialDays} dias de teste grátis. A assinatura{" "}
+              <strong>renova automaticamente</strong> ao fim de cada período,
+              salvo cancelamento prévio pelo painel de assinatura — o
+              cancelamento vale até o fim do período já pago, sem reembolso
+              proporcional. Após o período de teste, sem uma assinatura
+              ativa, o acesso à ferramenta fica bloqueado até a assinatura
+              ser feita.
+            </p>
+            <p className="mt-2 text-muted-foreground">
+              Em caso de falha ou atraso no pagamento, o acesso à ferramenta
+              pode ser bloqueado até a regularização, sem prejuízo dos dados
+              já cadastrados, que permanecem preservados durante esse
+              período. A reativação do acesso ocorre automaticamente assim
+              que o pagamento for processado com sucesso.
             </p>
           </section>
 
@@ -94,18 +103,59 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-medium">7. Limitação de responsabilidade</h2>
+            <h2 className="font-heading text-lg font-medium">7. Suspensão e rescisão</h2>
+            <p className="mt-2 text-muted-foreground">
+              Podemos suspender ou encerrar o acesso à sua conta, a qualquer
+              tempo, em caso de: violação destes Termos ou da Política de
+              Privacidade; uso indevido, fraudulento ou que coloque em risco
+              a segurança da plataforma ou de outras corretoras; ou
+              inadimplência não regularizada após aviso. Sempre que possível,
+              avisaremos antes da suspensão, exceto em casos de risco
+              iminente à plataforma ou a terceiros. Você também pode encerrar
+              sua conta a qualquer momento pelo painel (Configurações →
+              Encerrar conta), o que agenda a exclusão definitiva dos seus
+              dados conforme descrito na nossa{" "}
+              <a href="/privacy" className="underline underline-offset-2">
+                Política de Privacidade
+              </a>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-lg font-medium">8. Limitação de responsabilidade</h2>
             <p className="mt-2 text-muted-foreground">
               O {siteConfig.name} é fornecido &quot;como está&quot;. Fazemos o possível
               para manter o serviço disponível e os dados extraídos por IA
               corretos, mas não garantimos disponibilidade ininterrupta nem
               precisão absoluta da extração automática — a conferência final é
-              sempre sua.
+              sempre sua, especialmente antes de decisões de negócio
+              baseadas nesses dados.
+            </p>
+            <p className="mt-2 text-muted-foreground">
+              Na máxima extensão permitida pela lei brasileira, não
+              respondemos por danos indiretos, lucros cessantes ou perda de
+              dados de terceiros decorrentes do uso da plataforma, e nossa
+              responsabilidade total, quando aplicável, fica limitada ao
+              valor pago pela sua corretora nos 12 meses anteriores ao fato
+              gerador. Esta limitação não se aplica a danos causados por
+              dolo ou culpa grave, nem afasta direitos que não possam ser
+              limitados por disposição legal cogente.
             </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-medium">8. Alterações nestes termos</h2>
+            <h2 className="font-heading text-lg font-medium">9. Lei aplicável e foro</h2>
+            <p className="mt-2 text-muted-foreground">
+              Estes Termos são regidos pelas leis da República Federativa do
+              Brasil. Fica eleito o foro da comarca de São Paulo, SP, para
+              dirimir quaisquer controvérsias decorrentes destes Termos, com
+              renúncia a qualquer outro, por mais privilegiado que seja.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-lg font-medium">10. Alterações nestes termos</h2>
             <p className="mt-2 text-muted-foreground">
               Podemos atualizar estes Termos periodicamente. Mudanças
               relevantes serão comunicadas por e-mail ou dentro do próprio
@@ -114,7 +164,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-medium">9. Contato</h2>
+            <h2 className="font-heading text-lg font-medium">11. Contato</h2>
             <p className="mt-2 text-muted-foreground">
               Dúvidas sobre estes Termos:{" "}
               <a href={`mailto:${siteConfig.supportEmail}`} className="underline underline-offset-2">

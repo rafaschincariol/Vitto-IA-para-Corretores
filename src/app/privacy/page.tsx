@@ -29,6 +29,16 @@ export default function PrivacyPage() {
               dados que o corretor insere sobre os clientes dele, conforme a Lei
               Geral de Proteção de Dados (Lei 13.709/2018 — LGPD).
             </p>
+            <p className="mt-2 text-muted-foreground">
+              Nosso Encarregado de Proteção de Dados (DPO), responsável por
+              atender solicitações de titulares e se comunicar com a
+              Autoridade Nacional de Proteção de Dados (ANPD), pode ser
+              contatado em{" "}
+              <a href={`mailto:${siteConfig.supportEmail}`} className="underline underline-offset-2">
+                {siteConfig.supportEmail}
+              </a>
+              .
+            </p>
           </section>
 
           <section>
@@ -132,17 +142,21 @@ export default function PrivacyPage() {
               <a href={`mailto:${siteConfig.supportEmail}`} className="underline underline-offset-2">
                 {siteConfig.supportEmail}
               </a>
-              .
+              . Respondemos em até 15 dias corridos.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-lg font-medium">8. Retenção e exclusão</h2>
             <p className="mt-2 text-muted-foreground">
-              Mantemos os dados enquanto a conta estiver ativa. Ao cancelar a
-              assinatura, os dados continuam disponíveis por um período razoável
-              para reativação, e são excluídos mediante solicitação do corretor
-              ou após encerramento definitivo da conta.
+              Mantemos os dados enquanto a conta estiver ativa. Ao encerrar a
+              conta (pelo painel, em Configurações, ou por solicitação ao
+              nosso Encarregado), a assinatura é cancelada imediatamente e o
+              acesso é bloqueado na hora. Os dados ficam preservados por{" "}
+              <strong>30 dias</strong> — período em que a exclusão pode ser
+              cancelada entrando em contato conosco — e são apagados de
+              forma definitiva e irreversível ao final desse prazo,
+              incluindo os dados de clientes finais inseridos pelo corretor.
             </p>
           </section>
 
