@@ -2,8 +2,10 @@
 
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { teardownTenant } from "@/lib/tenants/delete-tenant";
 
 async function requirePlatformAdminSession() {
   const supabase = await createSupabaseClient();
@@ -125,4 +127,29 @@ export async function resetMemberPassword(
 
   revalidatePath(`/admin/tenants/${tenantId}`);
   return { error: null, password: tempPassword };
+}
+
+// Exclusão pelo admin (LGPD art. 18, VI) — mesmo efeito do "encerrar
+// conta" do próprio owner em src/app/(app)/settings/actions.ts, pro caso
+// do pedido chegar por suporte em vez de self-service. Exige digitar o
+// nome exato da corretora, igual ao self-service.
+export async function deleteTenant(
+  tenantId: string,
+  tenantName: string,
+  _prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const confirmName = String(formData.get("confirm_name") ?? "").trim();
+  if (confirmName !== tenantName) {
+    return { error: "Digite o nome da corretora exatamente como aparece, para confirmar." };
+  }
+
+  const supabase = await requirePlatformAdminSession();
+  try {
+    await teardownTenant(supabase, tenantId, "admin_delete_tenant");
+  } catch {
+    return { error: "Não foi possível excluir. Tente novamente ou verifique manualmente." };
+  }
+
+  redirect("/admin");
 }

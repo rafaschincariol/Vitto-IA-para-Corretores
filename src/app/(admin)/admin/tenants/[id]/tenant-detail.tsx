@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { AdminTenantMemberRow, AdminTenantRow } from "@/lib/data/admin";
-import { resetMemberPassword, updateMemberProfile, updateTenantName } from "../actions";
+import { deleteTenant, resetMemberPassword, updateMemberProfile, updateTenantName } from "../actions";
 
 const ROLE_LABELS: Record<AdminTenantMemberRow["role"], string> = {
   owner: "Admin da corretora",
@@ -113,7 +113,63 @@ export function TenantDetail({
           </div>
         </CardContent>
       </Card>
+
+      <div className="lg:col-span-2">
+        <TenantDangerZone tenantId={tenant.tenant_id} tenantName={tenant.tenant_name} />
+      </div>
     </div>
+  );
+}
+
+function TenantDangerZone({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState(
+    deleteTenant.bind(null, tenantId, tenantName),
+    { error: null }
+  );
+
+  return (
+    <Card className="border-destructive/40">
+      <CardHeader>
+        <CardTitle className="text-destructive">Zona de perigo</CardTitle>
+        <CardDescription>
+          Excluir apaga permanentemente todos os clientes, apólices, documentos e o acesso de
+          toda a equipe desta corretora — inclui o cancelamento da assinatura, se houver. Não tem
+          como desfazer. Use quando o pedido de encerramento vier por suporte.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <Button type="button" variant="destructive" onClick={() => setOpen(true)}>
+            Excluir corretora e todos os dados
+          </Button>
+          <DialogContent>
+            <form action={formAction}>
+              <DialogHeader>
+                <DialogTitle>Excluir {tenantName}?</DialogTitle>
+                <DialogDescription>
+                  Isso apaga permanentemente todos os dados desta corretora e remove o acesso de
+                  todos os membros. Para confirmar, digite o nome da corretora abaixo.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2 py-2">
+                <Label htmlFor="confirm_name">Nome da corretora</Label>
+                <Input id="confirm_name" name="confirm_name" placeholder={tenantName} required />
+              </div>
+              {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="destructive" disabled={pending}>
+                  {pending ? "Excluindo..." : "Excluir permanentemente"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
   );
 }
 

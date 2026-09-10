@@ -1,5 +1,6 @@
 import { requireProfile } from "@/lib/data/auth";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { DangerZone } from "./danger-zone";
 import { SettingsForm } from "./settings-form";
 import { TeamSection } from "./team-section";
 import type { Profile, TenantInvite } from "@/lib/types";
@@ -36,6 +37,8 @@ export default async function SettingsPage() {
       <SettingsForm tenantName={tenant.name} />
 
       {isOwner && <TeamSection members={members} invites={invites} />}
+
+      {isOwner && <DangerZone tenantName={tenant.name} />}
     </div>
   );
 }

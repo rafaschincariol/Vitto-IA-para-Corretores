@@ -45,6 +45,14 @@ function StatusBanner() {
     );
   }
 
+  if (searchParams.get("deleted") === "1") {
+    return (
+      <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+        Conta encerrada. Todos os dados foram apagados permanentemente.
+      </p>
+    );
+  }
+
   return null;
 }
 
