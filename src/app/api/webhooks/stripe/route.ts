@@ -2,14 +2,16 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
 import { getStripeClient } from "@/lib/billing/stripe";
+import { logActivity } from "@/lib/log-activity";
 
-// Único lugar do projeto que usa a service_role key do Supabase — de
-// propósito. Em todo o resto do app, quem autentica uma escrita é uma
-// sessão de usuário (e a RLS decide o que ela pode tocar); aqui não existe
-// sessão nenhuma, quem está chamando é o Stripe. A autenticação da escrita é
-// a assinatura criptográfica do webhook (verificada abaixo, antes de
-// qualquer coisa), não uma sessão — por isso a service_role (que ignora RLS)
-// é o jeito certo aqui, e só aqui.
+// Um dos poucos lugares do projeto que usa a service_role key do Supabase
+// (os outros: src/lib/supabase/admin.ts e src/lib/tenants/delete-tenant.ts).
+// Em todo o resto do app, quem autentica uma escrita é uma sessão de
+// usuário (e a RLS decide o que ela pode tocar); aqui não existe sessão
+// nenhuma, quem está chamando é o Stripe. A autenticação da escrita é a
+// assinatura criptográfica do webhook (verificada abaixo, antes de
+// qualquer coisa), não uma sessão — por isso a service_role (que ignora
+// RLS) é o jeito certo aqui.
 function createAdminClient() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 }
@@ -56,6 +58,13 @@ export async function POST(request: Request) {
     .eq("stripe_customer_id", customerId);
 
   if (error) {
+    await logActivity(supabase, {
+      category: "sistema",
+      eventType: "stripe_webhook_failed",
+      level: "erro",
+      message: `Falha ao processar evento de assinatura do Stripe (${event.type}).`,
+      metadata: { eventType: event.type, customerId, error: error.message },
+    });
     return NextResponse.json({ error: "Falha ao atualizar assinatura." }, { status: 500 });
   }
 

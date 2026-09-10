@@ -3,6 +3,7 @@
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { askAssistant, type AssistantAnswer, type ChatMessage } from "@/lib/ai/assistant";
+import { logActivity } from "@/lib/log-activity";
 
 export async function sendChatMessage(question: string, history: ChatMessage[]): Promise<AssistantAnswer> {
   const { tenant } = await requireProfile();
@@ -10,7 +11,15 @@ export async function sendChatMessage(question: string, history: ChatMessage[]):
 
   try {
     return await askAssistant(supabase, tenant.id, question, history);
-  } catch {
+  } catch (err) {
+    await logActivity(supabase, {
+      tenantId: tenant.id,
+      category: "sistema",
+      eventType: "assistant_failed",
+      level: "erro",
+      message: "O assistente de IA falhou ao responder uma pergunta.",
+      metadata: { error: err instanceof Error ? err.message : String(err) },
+    });
     return {
       answer: "Não foi possível gerar uma resposta agora. Tente novamente em instantes.",
       citations: [],

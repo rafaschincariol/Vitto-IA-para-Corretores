@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen, Building2, ShieldCheck } from "lucide-react";
+import { BookOpen, Building2, ScrollText, ShieldCheck } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
@@ -9,6 +9,7 @@ import { UserMenu } from "@/components/user-menu";
 const NAV_ITEMS = [
   { href: "/admin", label: "Corretoras", icon: Building2 },
   { href: "/admin/global-knowledge", label: "Base de Conhecimento", icon: BookOpen },
+  { href: "/admin/logs", label: "Logs", icon: ScrollText },
 ];
 
 // Grupo de rotas próprio, fora de (app): admin é um conceito de plataforma,

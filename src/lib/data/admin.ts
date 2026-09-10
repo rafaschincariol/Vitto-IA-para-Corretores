@@ -46,3 +46,27 @@ export async function listTenantMembersForAdmin(
   if (error || !data) return [];
   return data as AdminTenantMemberRow[];
 }
+
+export type ActivityLogCategory = "sistema" | "usuario";
+export type ActivityLogLevel = "info" | "aviso" | "erro";
+
+export type ActivityLogRow = {
+  id: string;
+  tenant_id: string | null;
+  tenant_name: string | null;
+  category: ActivityLogCategory;
+  event_type: string;
+  message: string;
+  level: ActivityLogLevel;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export async function listActivityLogForAdmin(
+  supabase: SupabaseClient,
+  limit = 200
+): Promise<ActivityLogRow[]> {
+  const { data, error } = await supabase.rpc("admin_list_activity_log", { p_limit: limit });
+  if (error || !data) return [];
+  return data as ActivityLogRow[];
+}

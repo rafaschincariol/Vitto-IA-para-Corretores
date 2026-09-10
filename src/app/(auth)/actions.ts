@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { logActivity } from "@/lib/log-activity";
 
 export type AuthActionState = { error: string | null };
 
@@ -21,6 +22,13 @@ export async function signInWithPassword(
 
   const { data: limited } = await supabase.rpc("is_login_rate_limited", { p_email: email });
   if (limited) {
+    await logActivity(supabase, {
+      category: "usuario",
+      eventType: "login_rate_limited",
+      level: "aviso",
+      message: `Login bloqueado por excesso de tentativas: ${email}.`,
+      metadata: { email },
+    });
     return { error: "Muitas tentativas. Tente novamente em alguns minutos." };
   }
 
@@ -28,6 +36,13 @@ export async function signInWithPassword(
 
   if (error) {
     await supabase.rpc("record_failed_login", { p_email: email });
+    await logActivity(supabase, {
+      category: "usuario",
+      eventType: "login_failed",
+      level: "aviso",
+      message: `Tentativa de login com senha incorreta: ${email}.`,
+      metadata: { email },
+    });
     return { error: "E-mail ou senha inválidos." };
   }
 
@@ -85,7 +100,17 @@ export async function signUpWithPassword(
   });
 
   if (error) {
-    return { error: error.message === "User already registered" ? "Este e-mail já está cadastrado." : "Não foi possível criar a conta." };
+    const alreadyRegistered = error.message === "User already registered";
+    await logActivity(supabase, {
+      category: alreadyRegistered ? "usuario" : "sistema",
+      eventType: "signup_failed",
+      level: alreadyRegistered ? "aviso" : "erro",
+      message: alreadyRegistered
+        ? `Tentativa de cadastro com e-mail já existente: ${email}.`
+        : `Cadastro falhou para ${email}: ${error.message}`,
+      metadata: { email, reason: error.message },
+    });
+    return { error: alreadyRegistered ? "Este e-mail já está cadastrado." : "Não foi possível criar a conta." };
   }
 
   redirect("/login?confirm=1");
@@ -133,6 +158,12 @@ export async function updatePassword(
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
+    await logActivity(supabase, {
+      category: "usuario",
+      eventType: "password_reset_link_invalid",
+      level: "aviso",
+      message: "Link de redefinição de senha inválido ou expirado.",
+    });
     return { error: "Link inválido ou expirado. Solicite um novo em \"Esqueci minha senha\"." };
   }
 

@@ -4,6 +4,7 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { extractPolicyData, type ExtractedPolicyData } from "@/lib/ai/extract-document";
 import { ingestDocumentChunks } from "@/lib/ai/ingest-chunks";
+import { logActivity } from "@/lib/log-activity";
 
 export type ExtractResult = { data: ExtractedPolicyData | null; error: string | null };
 
@@ -12,6 +13,7 @@ export type ExtractResult = { data: ExtractedPolicyData | null; error: string | 
 // corretor reabrir a revisão antes de confirmar o cadastro.
 export async function extractDocumentData(documentId: string): Promise<ExtractResult> {
   const supabase = await createSupabaseClient();
+  const { tenant } = await requireProfile();
 
   const { data: doc, error: docError } = await supabase
     .from("documents")
@@ -33,6 +35,14 @@ export async function extractDocumentData(documentId: string): Promise<ExtractRe
 
   if (downloadError || !fileBlob) {
     await supabase.from("documents").update({ status: "error" }).eq("id", documentId);
+    await logActivity(supabase, {
+      tenantId: tenant.id,
+      category: "sistema",
+      eventType: "document_download_failed",
+      level: "erro",
+      message: "Não foi possível baixar um documento para extração por IA.",
+      metadata: { documentId },
+    });
     return { data: null, error: "Não foi possível baixar o documento." };
   }
 
@@ -45,12 +55,19 @@ export async function extractDocumentData(documentId: string): Promise<ExtractRe
       .update({ status: "extracted", extracted_data: extracted })
       .eq("id", documentId);
 
-    const { tenant } = await requireProfile();
     await ingestDocumentChunks(supabase, tenant.id, documentId, extracted.full_text);
 
     return { data: extracted, error: null };
-  } catch {
+  } catch (err) {
     await supabase.from("documents").update({ status: "error" }).eq("id", documentId);
+    await logActivity(supabase, {
+      tenantId: tenant.id,
+      category: "sistema",
+      eventType: "document_extraction_failed",
+      level: "erro",
+      message: "A extração de dados por IA falhou para um documento enviado.",
+      metadata: { documentId, error: err instanceof Error ? err.message : String(err) },
+    });
     return { data: null, error: "Não foi possível extrair os dados do documento com a IA." };
   }
 }
