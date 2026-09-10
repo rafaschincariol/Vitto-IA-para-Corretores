@@ -28,3 +28,20 @@ export async function listTenantsForAdmin(supabase: SupabaseClient): Promise<Adm
   if (error || !data) return [];
   return data as AdminTenantRow[];
 }
+
+export type AdminTenantMemberRow = {
+  profile_id: string;
+  full_name: string | null;
+  email: string;
+  role: "owner" | "member";
+  created_at: string;
+};
+
+export async function listTenantMembersForAdmin(
+  supabase: SupabaseClient,
+  tenantId: string
+): Promise<AdminTenantMemberRow[]> {
+  const { data, error } = await supabase.rpc("admin_list_tenant_members", { p_tenant_id: tenantId });
+  if (error || !data) return [];
+  return data as AdminTenantMemberRow[];
+}

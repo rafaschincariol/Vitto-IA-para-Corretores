@@ -8,9 +8,11 @@
 -- SECURITY DEFINER que confere que quem chama é o owner do tenant; a
 -- mudança de status em si (trial -> ativo -> cancelado) só acontece via
 -- webhook do Stripe, que roda com a service_role key (ver
--- src/app/api/webhooks/stripe/route.ts) — o único lugar do projeto que usa
--- essa chave, porque ali quem autentica a escrita é a assinatura
--- criptográfica do Stripe, não uma sessão de usuário Supabase.
+-- src/app/api/webhooks/stripe/route.ts) — ali quem autentica a escrita é a
+-- assinatura criptográfica do Stripe, não uma sessão de usuário Supabase.
+-- (A service_role key também é usada em src/lib/supabase/admin.ts, pro
+-- reset de senha no painel admin — sempre atrás de checagem de
+-- platform_admins, nunca como atalho de RLS.)
 
 create table public.tenant_subscriptions (
   tenant_id uuid primary key references public.tenants (id) on delete cascade,

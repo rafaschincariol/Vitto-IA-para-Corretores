@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { AdminTenantRow } from "@/lib/data/admin";
 import type { SubscriptionStatus } from "@/lib/types";
 
-const STATUS_LABELS: Record<SubscriptionStatus, string> = {
+export const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   trialing: "Em teste",
   active: "Ativa",
   past_due: "Pagamento pendente",
@@ -20,7 +21,7 @@ const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   paused: "Pausada",
 };
 
-const STATUS_VARIANT: Record<SubscriptionStatus, "default" | "outline" | "destructive" | "secondary"> = {
+export const STATUS_VARIANT: Record<SubscriptionStatus, "default" | "outline" | "destructive" | "secondary"> = {
   trialing: "secondary",
   active: "default",
   past_due: "destructive",
@@ -87,7 +88,11 @@ export function TenantsTable({ tenants }: { tenants: AdminTenantRow[] }) {
             )}
             {pageItems.map((t) => (
               <TableRow key={t.tenant_id}>
-                <TableCell className="font-medium">{t.tenant_name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link href={`/admin/tenants/${t.tenant_id}`} className="underline-offset-4 hover:underline">
+                    {t.tenant_name}
+                  </Link>
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     <span>{t.owner_full_name ?? "—"}</span>
