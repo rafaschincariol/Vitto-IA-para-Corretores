@@ -116,9 +116,10 @@ export function DocumentDropzone({
       });
 
       if (created > 0) {
-        toast.success(
-          `${created} apólice(s) cadastrada(s) automaticamente — revise em "Documentos > Revisar".`
-        );
+        toast.success(`${created} apólice(s) cadastrada(s) automaticamente pela IA.`, {
+          description: "Confira os dados antes de confirmar o cadastro.",
+          action: { label: "Revisar agora", onClick: () => router.push("/documents/review") },
+        });
       }
       if (failed > 0) {
         toast.error(`${failed} documento(s) não puderam ser processados pela IA.`);

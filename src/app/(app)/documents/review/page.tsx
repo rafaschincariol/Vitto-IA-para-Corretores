@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { ReviewCard } from "./review-card";
@@ -55,7 +55,13 @@ export default async function DocumentsReviewPage() {
       </div>
 
       {(clients ?? []).length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum cadastro pendente de revisão.</p>
+        <div className="rounded-lg border p-4 text-sm sm:p-5">
+          <p className="text-muted-foreground">Nenhum cadastro pendente de revisão.</p>
+          <Link href="/assistant" className="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline">
+            Pergunte ao Vitto sobre a sua carteira
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {(clients ?? []).map((client) => {

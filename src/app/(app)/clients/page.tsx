@@ -1,5 +1,6 @@
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
+import { AiImportNudge } from "@/components/ai-import-nudge";
 import { ClientFormDialog } from "./client-form-dialog";
 import { ImportClientsDialog } from "./import-clients-dialog";
 import { ClientsTable } from "./clients-table";
@@ -31,6 +32,10 @@ export default async function ClientsPage() {
           <ClientFormDialog isOwner={isOwner} teamMembers={teamMembers ?? []} />
         </div>
       </div>
+
+      {(clients ?? []).length === 0 && (
+        <AiImportNudge message="Não precisa cadastrar cliente por cliente — envie os PDFs das apólices e o Vitto cadastra tudo sozinho." />
+      )}
 
       <ClientsTable clients={clients ?? []} isOwner={isOwner} teamMembers={teamMembers ?? []} />
     </div>

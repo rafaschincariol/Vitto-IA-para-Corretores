@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Check, ExternalLink, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,18 @@ export function ReviewCard({
   const [state, formAction, pending] = useActionState(action, initialState);
   const [discarding, startDiscard] = useTransition();
   const [opening, setOpening] = useState(false);
+  const submittedRef = useRef(false);
+
+  // Reforço no momento certo: o cadastro que a IA criou sozinha acabou de
+  // ser confirmado pelo corretor — o valor da ferramenta é mais tangível
+  // aqui do que em qualquer texto de marketing.
+  useEffect(() => {
+    if (pending) submittedRef.current = true;
+    if (!pending && submittedRef.current && !state.error) {
+      submittedRef.current = false;
+      toast.success("Cadastro confirmado — já pode perguntar ao Vitto sobre esse cliente.");
+    }
+  }, [pending, state]);
 
   async function openOriginal() {
     if (!storagePath) return;

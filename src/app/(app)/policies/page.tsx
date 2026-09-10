@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { AiImportNudge } from "@/components/ai-import-nudge";
 import { PolicyFormDialog } from "./policy-form-dialog";
 import { PoliciesTable } from "./policies-table";
 import type { PolicyWithClient } from "@/lib/types";
@@ -24,6 +25,10 @@ export default async function PoliciesPage() {
         </div>
         <PolicyFormDialog clients={clients ?? []} />
       </div>
+
+      {(policies ?? []).length === 0 && (
+        <AiImportNudge message="Envie os PDFs das apólices e o Vitto extrai os dados e cadastra tudo automaticamente." />
+      )}
 
       <PoliciesTable policies={policies ?? []} clients={clients ?? []} />
     </div>

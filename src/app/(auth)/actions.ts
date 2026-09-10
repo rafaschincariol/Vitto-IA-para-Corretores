@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/log-activity";
+import { isMailerRateLimitError } from "@/lib/mailer-error";
 
 export type AuthActionState = { error: string | null };
 
@@ -101,13 +102,16 @@ export async function signUpWithPassword(
 
   if (error) {
     const alreadyRegistered = error.message === "User already registered";
+    const rateLimited = !alreadyRegistered && isMailerRateLimitError(error.message);
     await logActivity(supabase, {
       category: alreadyRegistered ? "usuario" : "sistema",
-      eventType: "signup_failed",
+      eventType: rateLimited ? "email_rate_limited" : "signup_failed",
       level: alreadyRegistered ? "aviso" : "erro",
       message: alreadyRegistered
         ? `Tentativa de cadastro com e-mail já existente: ${email}.`
-        : `Cadastro falhou para ${email}: ${error.message}`,
+        : rateLimited
+          ? `Cadastro de ${email} falhou: o limite de envio de e-mails do Resend foi atingido. Novos cadastros e e-mails de recuperação de senha vão falhar até o limite renovar — considere aumentar o plano do Resend.`
+          : `Cadastro falhou para ${email}: ${error.message}`,
       metadata: { email, reason: error.message },
     });
     return { error: alreadyRegistered ? "Este e-mail já está cadastrado." : "Não foi possível criar a conta." };
@@ -135,9 +139,26 @@ export async function requestPasswordReset(
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  await supabase.auth.resetPasswordForEmail(email, {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/reset-password`,
   });
+
+  // O Supabase não revela e-mail inexistente aqui (retorna sucesso mesmo
+  // assim, de propósito, pra não permitir enumeração) — então um `error`
+  // real é sempre falha de sistema (ex: limite de envio do Resend
+  // estourado), seguro de logar sem vazar quem tem conta.
+  if (error) {
+    const rateLimited = isMailerRateLimitError(error.message);
+    await logActivity(supabase, {
+      category: "sistema",
+      eventType: rateLimited ? "email_rate_limited" : "password_reset_failed",
+      level: "erro",
+      message: rateLimited
+        ? `Pedido de redefinição de senha de ${email} falhou: o limite de envio de e-mails do Resend foi atingido. Novos e-mails vão falhar até o limite renovar — considere aumentar o plano do Resend.`
+        : `Pedido de redefinição de senha falhou para ${email}: ${error.message}`,
+      metadata: { email, reason: error.message },
+    });
+  }
 
   // Sempre redireciona pro mesmo lugar, exista ou não conta com esse e-mail —
   // não dá pra revelar quais e-mails têm cadastro.
