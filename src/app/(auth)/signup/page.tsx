@@ -87,6 +87,26 @@ function SignupForm() {
             required
           />
         </div>
+        <div className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            id="terms_accepted"
+            name="terms_accepted"
+            required
+            className="mt-0.5 size-4 shrink-0 rounded border-input accent-foreground"
+          />
+          <Label htmlFor="terms_accepted" className="block text-sm leading-normal font-normal text-muted-foreground">
+            Li e aceito os{" "}
+            <Link href="/terms" target="_blank" className="font-medium text-foreground underline underline-offset-4">
+              Termos de Uso
+            </Link>{" "}
+            e a{" "}
+            <Link href="/privacy" target="_blank" className="font-medium text-foreground underline underline-offset-4">
+              Política de Privacidade
+            </Link>
+            .
+          </Label>
+        </div>
         {state.error && <p className="text-sm text-destructive">{state.error}</p>}
         <Button type="submit" className="w-full" disabled={pending || inviteInvalid}>
           {pending ? "Criando conta..." : "Criar conta"}

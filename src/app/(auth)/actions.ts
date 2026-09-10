@@ -31,7 +31,16 @@ export async function signInWithPassword(
     return { error: "E-mail ou senha inválidos." };
   }
 
-  redirect("/dashboard");
+  // Administradores da plataforma (public.platform_admins) não têm
+  // corretora própria — vão direto pro painel de controle, não pro
+  // dashboard de uma corretora.
+  const { data: isAdmin } = await supabase
+    .from("platform_admins")
+    .select("email")
+    .eq("email", email)
+    .maybeSingle();
+
+  redirect(isAdmin ? "/admin" : "/dashboard");
 }
 
 export async function signUpWithPassword(
@@ -43,6 +52,7 @@ export async function signUpWithPassword(
   const fullName = String(formData.get("full_name") ?? "").trim();
   const tenantName = String(formData.get("tenant_name") ?? "").trim();
   const inviteToken = String(formData.get("invite_token") ?? "").trim();
+  const termsAccepted = formData.get("terms_accepted") === "on";
 
   // Sem convite, o cadastro cria uma corretora nova e exige o nome dela; com
   // convite, o usuário entra numa corretora já existente (ver
@@ -53,9 +63,15 @@ export async function signUpWithPassword(
   if (password.length < 8) {
     return { error: "A senha precisa ter pelo menos 8 caracteres." };
   }
+  // Checagem no servidor, não só no `required` do checkbox — o HTML pode
+  // ser burlado, mas o consentimento (LGPD art. 8º) precisa ser real.
+  if (!termsAccepted) {
+    return { error: "É preciso aceitar os Termos de Uso e a Política de Privacidade." };
+  }
 
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
+  const termsAcceptedAt = new Date().toISOString();
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -63,8 +79,8 @@ export async function signUpWithPassword(
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
       data: inviteToken
-        ? { full_name: fullName, invite_token: inviteToken }
-        : { full_name: fullName, tenant_name: tenantName },
+        ? { full_name: fullName, invite_token: inviteToken, terms_accepted_at: termsAcceptedAt }
+        : { full_name: fullName, tenant_name: tenantName, terms_accepted_at: termsAcceptedAt },
     },
   });
 

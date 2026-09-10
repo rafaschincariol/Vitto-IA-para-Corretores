@@ -25,7 +25,17 @@ export async function requireProfile(): Promise<{ profile: Profile; tenant: Tena
     .single<Profile & { tenant: Tenant }>();
 
   if (error || !profile) {
-    redirect("/login");
+    // Administradores da plataforma (public.platform_admins) não têm
+    // corretora/tenant própria — o painel deles vive em /admin, fora do
+    // grupo de rotas (app). Sem essa checagem, quem só tem acesso admin
+    // cairia num loop de redirect pro /login.
+    const { data: isAdmin } = await supabase
+      .from("platform_admins")
+      .select("email")
+      .eq("email", user.email ?? "")
+      .maybeSingle();
+
+    redirect(isAdmin ? "/admin" : "/login");
   }
 
   const { tenant, ...profileFields } = profile;

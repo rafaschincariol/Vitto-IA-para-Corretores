@@ -25,8 +25,8 @@ export default function TermsPage() {
               O {siteConfig.name} ({siteConfig.fullName}) é um software como
               serviço (SaaS) para gestão de carteira de corretoras de seguros,
               operado por <strong>{siteConfig.legalName}</strong> (CNPJ{" "}
-              {siteConfig.cnpj}). Ao
-              criar uma conta, você concorda com estes Termos e com a nossa{" "}
+              {siteConfig.cnpj}). Ao marcar a caixa de aceite no cadastro, você
+              concorda com estes Termos e com a nossa{" "}
               <a href="/privacy" className="underline underline-offset-2">
                 Política de Privacidade
               </a>

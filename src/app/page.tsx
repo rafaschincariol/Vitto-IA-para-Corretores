@@ -124,8 +124,30 @@ export default async function Home() {
     redirect("/dashboard");
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: siteConfig.fullName,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description: siteConfig.description,
+    url: siteConfig.url,
+    offers: {
+      "@type": "Offer",
+      price: siteConfig.price.replace(/[^\d,]/g, "").replace(",", "."),
+      priceCurrency: "BRL",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: siteConfig.price.replace(/[^\d,]/g, "").replace(",", "."),
+        priceCurrency: "BRL",
+        unitText: "MONTH",
+      },
+    },
+  };
+
   return (
     <div className="flex min-h-full flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <MarketingNav />
 
       <main className="flex-1">

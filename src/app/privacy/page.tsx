@@ -73,26 +73,42 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-heading text-lg font-medium">4. Com quem compartilhamos dados</h2>
             <p className="mt-2 text-muted-foreground">
-              Usamos os seguintes operadores para prestar o serviço — todos sob
-              contrato, e alguns podem processar dados fora do Brasil:
+              Usamos os seguintes tipos de operador pra prestar o serviço — todos
+              sob contrato de confidencialidade e segurança, com o menor acesso
+              possível pra cada finalidade:
             </p>
             <ul className="mt-2 list-disc space-y-1.5 pl-5 text-muted-foreground">
-              <li><strong>Supabase</strong> — banco de dados e autenticação.</li>
-              <li><strong>Vercel</strong> — hospedagem da aplicação.</li>
-              <li><strong>Anthropic (Claude)</strong> — leitura e extração de dados de documentos de apólice enviados, e respostas do assistente.</li>
-              <li><strong>Voyage AI</strong> — geração de embeddings para busca do assistente.</li>
-              <li><strong>Stripe</strong> — processamento de pagamento da assinatura.</li>
+              <li>
+                <strong>Infraestrutura de nuvem e banco de dados</strong> — hospedagem
+                da aplicação e armazenamento dos dados.
+              </li>
+              <li>
+                <strong>Provedores de inteligência artificial</strong> — leitura
+                automática de documentos de apólice enviados e respostas do
+                assistente virtual.
+              </li>
+              <li>
+                <strong>Stripe</strong> — processamento de pagamento da assinatura
+                (nunca temos acesso ao número do cartão).
+              </li>
             </ul>
+            <p className="mt-2 text-muted-foreground">
+              Parte desses operadores processa dados fora do Brasil — nesses casos,
+              a transferência acontece sob contrato com padrões de proteção
+              equivalentes aos exigidos pela LGPD (art. 33).
+            </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-medium">5. Como protegemos os dados</h2>
+            <h2 className="font-heading text-lg font-medium">5. Como protegemos e isolamos os dados</h2>
             <p className="mt-2 text-muted-foreground">
-              Cada corretora só tem acesso aos próprios dados — isolamento
-              aplicado no próprio banco de dados (Row Level Security), não numa
-              configuração que pode ser desligada por engano. Login tem limite de
-              tentativas, e a conexão é sempre criptografada (HTTPS). Detalhes
-              técnicos ficam documentados publicamente no repositório do produto.
+              Cada corretora enxerga e acessa apenas os próprios dados — nunca os
+              de outra corretora na plataforma. Esse isolamento é aplicado a nível
+              de banco de dados, corretora por corretora, e não depende de nenhuma
+              configuração que possa ser desligada por engano. O acesso de login
+              tem limite de tentativas, e toda a conexão entre você e o Vitto é
+              sempre criptografada (HTTPS). Dentro de uma mesma corretora, o
+              Admin também pode restringir o que cada corretor da equipe enxerga.
             </p>
           </section>
 
