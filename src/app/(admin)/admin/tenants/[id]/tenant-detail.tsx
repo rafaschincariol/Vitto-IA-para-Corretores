@@ -15,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -127,10 +128,15 @@ function MemberRow({ tenantId, member }: { tenantId: string; member: AdminTenant
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  async function handleReset() {
-    setResetPending(true);
+  function askReset() {
     setResetError(null);
     setTempPassword(null);
+    setResetOpen(true);
+  }
+
+  async function confirmReset() {
+    setResetPending(true);
+    setResetError(null);
     const result = await resetMemberPassword(tenantId, member.profile_id);
     setResetPending(false);
     if (result.error) {
@@ -138,7 +144,6 @@ function MemberRow({ tenantId, member }: { tenantId: string; member: AdminTenant
     } else {
       setTempPassword(result.password);
     }
-    setResetOpen(true);
   }
 
   async function handleCopy() {
@@ -182,7 +187,7 @@ function MemberRow({ tenantId, member }: { tenantId: string; member: AdminTenant
           <Badge variant="outline">{ROLE_LABELS[member.role]}</Badge>
         </TableCell>
         <TableCell>
-          <Button variant="ghost" size="icon-sm" title="Redefinir senha" onClick={handleReset} disabled={resetPending}>
+          <Button variant="ghost" size="icon-sm" title="Redefinir senha" onClick={askReset}>
             <KeyRound className="size-4" />
           </Button>
         </TableCell>
@@ -190,21 +195,43 @@ function MemberRow({ tenantId, member }: { tenantId: string; member: AdminTenant
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{resetError ? "Erro ao redefinir senha" : "Senha redefinida"}</DialogTitle>
-            <DialogDescription>
-              {resetError
-                ? resetError
-                : `Nova senha temporária para ${member.email}. Ela só é exibida agora — copie e repasse com segurança (WhatsApp, telefone) e peça para trocar no próximo login.`}
-            </DialogDescription>
-          </DialogHeader>
-          {tempPassword && (
-            <div className="flex items-center gap-2 rounded-md border bg-muted p-3">
-              <code className="flex-1 text-sm break-all">{tempPassword}</code>
-              <Button variant="outline" size="icon-sm" onClick={handleCopy} title="Copiar">
-                {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-              </Button>
-            </div>
+          {!tempPassword && !resetError ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Redefinir senha de {member.email}?</DialogTitle>
+                <DialogDescription>
+                  A senha atual deixa de funcionar imediatamente. Você vai receber uma senha temporária pra
+                  repassar com segurança (WhatsApp, telefone) — não é enviada por e-mail.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setResetOpen(false)} disabled={resetPending}>
+                  Cancelar
+                </Button>
+                <Button onClick={confirmReset} disabled={resetPending}>
+                  {resetPending ? "Redefinindo..." : "Confirmar redefinição"}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>{resetError ? "Erro ao redefinir senha" : "Senha redefinida"}</DialogTitle>
+                <DialogDescription>
+                  {resetError
+                    ? resetError
+                    : `Nova senha temporária para ${member.email}. Ela só é exibida agora — copie e repasse com segurança (WhatsApp, telefone) e peça para trocar no próximo login.`}
+                </DialogDescription>
+              </DialogHeader>
+              {tempPassword && (
+                <div className="flex items-center gap-2 rounded-md border bg-muted p-3">
+                  <code className="flex-1 text-sm break-all">{tempPassword}</code>
+                  <Button variant="outline" size="icon-sm" onClick={handleCopy} title="Copiar">
+                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
