@@ -1,14 +1,14 @@
 export const siteConfig = {
   name: "Vitto",
   fullName: "Vitto IA para Corretores",
-  tagline: "O painel que cadastra apólice sozinho.",
+  tagline: "A assistente de IA que gerencia a carteira da sua corretora.",
   description:
-    "Envie a apólice em PDF ou foto e a Vitto cadastra o cliente e a apólice com IA. CRM, vencimentos, assistente e equipe — R$ 49,99/mês por corretora, 14 dias grátis.",
+    "A Vitto acompanha cada cliente, apólice e vencimento da sua carteira e responde suas perguntas sobre ela — e ainda cadastra apólices sozinha a partir de PDF ou foto. CRM, vencimentos, assistente e equipe — R$ 49,99/mês por corretora, 14 dias grátis.",
   price: "R$ 49,99",
   priceInterval: "/mês por corretora",
   trialDays: 14,
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://corretor-saas.vercel.app",
-  supportEmail: "contato@vittoia.com.br",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://iaparacorretores.app.br",
+  supportEmail: "contato@iaparacorretores.app.br",
   legalName: "R Schincariol Serviços Administrativos LTDA",
   cnpj: "39.837.484/0001-63",
 };

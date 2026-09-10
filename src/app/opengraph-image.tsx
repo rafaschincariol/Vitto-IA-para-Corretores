@@ -34,7 +34,7 @@ export default async function Image() {
               width: 44,
               height: 44,
               borderRadius: 10,
-              background: "#0a0a0a",
+              background: "#2b3d8f",
             }}
           />
           <span style={{ fontSize: 30, fontWeight: 600, color: "#0a0a0a" }}>
@@ -52,7 +52,7 @@ export default async function Image() {
             maxWidth: 920,
           }}
         >
-          Cadastre uma apólice em segundos. Não em vinte minutos.
+          {siteConfig.tagline}
         </div>
         <div
           style={{

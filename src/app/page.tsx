@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -15,15 +16,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { HeroMockup } from "@/components/marketing/hero-mockup";
+import { BrowserFrame } from "@/components/marketing/browser-frame";
 import { LegalFooter } from "@/components/marketing/legal-footer";
 import { siteConfig } from "@/lib/site-config";
 
-const FEATURES = [
+const FEATURES: {
+  icon: typeof Sparkles;
+  title: string;
+  description: string;
+  visual?: ReactNode;
+}[] = [
   {
-    icon: ScanText,
-    title: "Cadastro automático por IA",
+    icon: Sparkles,
+    title: "Assistente de IA para sua carteira",
     description:
-      "Envie o PDF ou a foto da apólice. A Vitto lê o documento, identifica o cliente e a apólice e preenche tudo sozinha — você só confere.",
+      "Pergunte em linguagem natural sobre apólices e condições de seguros, e receba resposta com a fonte citada — sem precisar procurar em PDF nenhum.",
   },
   {
     icon: Users,
@@ -38,10 +45,11 @@ const FEATURES = [
       "Veja o que vence em 30, 60 e 90 dias antes que o cliente esqueça de renovar — e antes que a concorrência ligue primeiro.",
   },
   {
-    icon: Sparkles,
-    title: "Assistente com IA",
+    icon: ScanText,
+    title: "Cadastro automático por IA",
     description:
-      "Pergunte em linguagem natural sobre sua carteira ou sobre condições gerais de seguros, e receba resposta com a fonte citada.",
+      "Envie o PDF ou a foto da apólice. A Vitto lê o documento, identifica o cliente e a apólice e preenche tudo sozinha — você só confere.",
+    visual: <HeroMockup />,
   },
   {
     icon: UsersRound,
@@ -125,14 +133,15 @@ export default async function Home() {
         <section className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="secondary" className="mb-5">
-              Software para corretoras de seguros
+              IA para gestão de carteira de seguros
             </Badge>
             <h1 className="text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-5xl">
-              Cadastre uma apólice em segundos. Não em vinte minutos.
+              A IA que cuida da carteira da sua corretora.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground text-balance">
-              Envie o PDF da apólice e a {siteConfig.name} cadastra o cliente e a
-              apólice sozinha, com IA. Sua equipe só confere e segue vendendo.
+              A {siteConfig.name} acompanha clientes, apólices e vencimentos da sua
+              carteira e responde suas perguntas sobre ela — e ainda cadastra
+              apólices sozinha a partir de PDF ou foto.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-11 px-6 text-base">
@@ -150,8 +159,14 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="mx-auto mt-14 max-w-2xl">
-            <HeroMockup />
+          <div className="mx-auto mt-14 max-w-4xl">
+            <BrowserFrame
+              src="/marketing/dashboard.png"
+              alt="Dashboard da Vitto mostrando apólices ativas, prêmio total, taxa de renovação e o painel de vencimentos da carteira"
+              width={1440}
+              height={900}
+              priority
+            />
           </div>
         </section>
 
@@ -163,8 +178,8 @@ export default async function Home() {
                 Tudo que sua corretora precisa, num painel só
               </h2>
               <p className="mt-3 text-muted-foreground">
-                Construído em cima do que consome mais tempo numa corretora: digitar
-                apólice e correr atrás de vencimento.
+                Construído em cima do que consome mais tempo numa corretora:
+                acompanhar a carteira, correr atrás de vencimento e digitar apólice.
               </p>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -178,9 +193,60 @@ export default async function Home() {
                     <p className="mt-1.5 text-sm text-muted-foreground">
                       {feature.description}
                     </p>
+                    {feature.visual && <div className="mt-4">{feature.visual}</div>}
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Product tour */}
+        <section className="py-20 sm:py-24">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-semibold tracking-tight text-balance">
+                Veja a Vitto cuidando da carteira de verdade
+              </h2>
+            </div>
+
+            <div className="mt-14 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+              <div>
+                <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance">
+                  Toda a sua carteira, buscável em segundos
+                </h3>
+                <p className="mt-3 text-muted-foreground">
+                  Clientes, apólices, prêmios e vencimentos num só lugar — busque por
+                  nome, CPF/CNPJ, e-mail ou telefone e encontre o que precisa na
+                  hora, sem abrir planilha nenhuma.
+                </p>
+              </div>
+              <BrowserFrame
+                src="/marketing/clients.png"
+                alt="Tela de clientes da Vitto mostrando a carteira completa de uma corretora, com busca e dados de contato"
+                width={1440}
+                height={900}
+              />
+            </div>
+
+            <div className="mt-16 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+              <BrowserFrame
+                src="/marketing/assistant.png"
+                alt="Assistente de IA da Vitto respondendo, com dados reais da carteira, quais apólices vencem nos próximos 30 dias"
+                width={1440}
+                height={900}
+                className="lg:order-2"
+              />
+              <div className="lg:order-1">
+                <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance">
+                  Pergunte, não procure
+                </h3>
+                <p className="mt-3 text-muted-foreground">
+                  A assistente de IA responde com dados reais da sua carteira —
+                  quem vence, quando e com qual seguradora — e também sobre
+                  condições gerais de seguros, sempre citando a fonte.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -267,7 +333,7 @@ export default async function Home() {
         <section className="border-t py-20 sm:py-24">
           <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
             <h2 className="text-3xl font-semibold tracking-tight text-balance">
-              Pare de digitar apólice
+              Pare de perder vencimento. Pare de digitar apólice.
             </h2>
             <p className="mt-3 text-muted-foreground">
               {siteConfig.trialDays} dias grátis, sem cartão de crédito. Cancele quando quiser.
