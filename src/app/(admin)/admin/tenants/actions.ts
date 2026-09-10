@@ -44,23 +44,50 @@ export async function updateTenantName(
   return { error: null };
 }
 
-export async function updateProfileName(
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Atualiza nome e e-mail de um membro. O e-mail precisa passar pela Admin
+// API (service role) porque é o e-mail de LOGIN em auth.users, não um
+// campo solto — atualizar só public.profiles.email deixaria o login
+// dessincronizado do que aparece na UI. email_confirm:true pula a
+// confirmação porque é o admin da plataforma fazendo a correção, não o
+// próprio usuário mudando de e-mail sozinho.
+export async function updateMemberProfile(
   tenantId: string,
   profileId: string,
   _prevState: AdminActionState,
   formData: FormData
 ): Promise<AdminActionState> {
   const fullName = String(formData.get("full_name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+
   if (!fullName) return { error: "Informe um nome." };
+  if (!EMAIL_RE.test(email)) return { error: "E-mail inválido." };
 
   const supabase = await requirePlatformAdminSession();
-  const { error } = await supabase.rpc("admin_update_profile_name", {
+
+  const { error: nameError } = await supabase.rpc("admin_update_profile_name", {
     p_profile_id: profileId,
     p_full_name: fullName,
   });
-  if (error) return { error: "Não foi possível salvar." };
+  if (nameError) return { error: "Não foi possível salvar o nome." };
+
+  const admin = createAdminClient();
+  const { error: emailError } = await admin.auth.admin.updateUserById(profileId, {
+    email,
+    email_confirm: true,
+  });
+  if (emailError) {
+    return {
+      error: emailError.message.includes("already been registered")
+        ? "Esse e-mail já está em uso por outra conta."
+        : "Não foi possível salvar o e-mail.",
+    };
+  }
+  await admin.from("profiles").update({ email }).eq("id", profileId);
 
   revalidatePath(`/admin/tenants/${tenantId}`);
+  revalidatePath("/admin");
   return { error: null };
 }
 

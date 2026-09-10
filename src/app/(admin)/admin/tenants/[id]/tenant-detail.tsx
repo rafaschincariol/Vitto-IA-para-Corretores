@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { AdminTenantMemberRow, AdminTenantRow } from "@/lib/data/admin";
-import { resetMemberPassword, updateProfileName, updateTenantName } from "../actions";
+import { resetMemberPassword, updateMemberProfile, updateTenantName } from "../actions";
 
 const ROLE_LABELS: Record<AdminTenantMemberRow["role"], string> = {
   owner: "Admin da corretora",
@@ -91,8 +91,7 @@ export function TenantDetail({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
+                  <TableHead>Nome e e-mail</TableHead>
                   <TableHead>Papel</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
@@ -100,7 +99,7 @@ export function TenantDetail({
               <TableBody>
                 {members.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    <TableCell colSpan={3} className="text-center text-muted-foreground">
                       Nenhum membro encontrado.
                     </TableCell>
                   </TableRow>
@@ -118,8 +117,8 @@ export function TenantDetail({
 }
 
 function MemberRow({ tenantId, member }: { tenantId: string; member: AdminTenantMemberRow }) {
-  const [nameState, nameAction, namePending] = useActionState(
-    updateProfileName.bind(null, tenantId, member.profile_id),
+  const [profileState, profileAction, profilePending] = useActionState(
+    updateMemberProfile.bind(null, tenantId, member.profile_id),
     { error: null }
   );
   const [resetOpen, setResetOpen] = useState(false);
@@ -157,20 +156,28 @@ function MemberRow({ tenantId, member }: { tenantId: string; member: AdminTenant
     <>
       <TableRow>
         <TableCell>
-          <form action={nameAction} className="flex items-center gap-2">
+          <form action={profileAction} className="flex flex-col gap-1.5">
             <Input
               name="full_name"
               defaultValue={member.full_name ?? ""}
-              className="h-8 w-40"
+              className="h-8 w-48"
+              placeholder="Nome"
               aria-label={`Nome de ${member.email}`}
             />
-            <Button type="submit" size="sm" variant="ghost" disabled={namePending}>
-              {namePending ? "..." : "Salvar"}
+            <Input
+              name="email"
+              type="email"
+              defaultValue={member.email}
+              className="h-8 w-48"
+              placeholder="E-mail"
+              aria-label={`E-mail de ${member.email}`}
+            />
+            <Button type="submit" size="sm" variant="outline" className="w-fit" disabled={profilePending}>
+              {profilePending ? "Salvando..." : "Salvar"}
             </Button>
           </form>
-          {nameState.error && <p className="mt-1 text-xs text-destructive">{nameState.error}</p>}
+          {profileState.error && <p className="mt-1 text-xs text-destructive">{profileState.error}</p>}
         </TableCell>
-        <TableCell className="text-sm text-muted-foreground">{member.email}</TableCell>
         <TableCell>
           <Badge variant="outline">{ROLE_LABELS[member.role]}</Badge>
         </TableCell>
