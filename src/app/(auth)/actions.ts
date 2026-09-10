@@ -114,7 +114,13 @@ export async function signUpWithPassword(
           : `Cadastro falhou para ${email}: ${error.message}`,
       metadata: { email, reason: error.message },
     });
-    return { error: alreadyRegistered ? "Este e-mail já está cadastrado." : "Não foi possível criar a conta." };
+    return {
+      error: alreadyRegistered
+        ? "Este e-mail já está cadastrado."
+        : rateLimited
+          ? "Não conseguimos enviar o e-mail de confirmação agora (sistema sobrecarregado). Tente de novo em alguns minutos."
+          : "Não foi possível criar a conta.",
+    };
   }
 
   redirect(`/login?confirm=1&email=${encodeURIComponent(email)}`);

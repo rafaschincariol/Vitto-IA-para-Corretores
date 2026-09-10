@@ -91,6 +91,7 @@ function SignupForm() {
             minLength={8}
             required
           />
+          <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres.</p>
         </div>
         <div className="flex items-start gap-2">
           <input
@@ -112,7 +113,24 @@ function SignupForm() {
             .
           </Label>
         </div>
-        {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+        {state.error && (
+          <p className="text-sm text-destructive">
+            {state.error}
+            {state.error === "Este e-mail já está cadastrado." && (
+              <>
+                {" "}
+                <Link href="/login" className="font-medium underline underline-offset-4">
+                  Entrar na conta
+                </Link>
+                {" ou "}
+                <Link href="/forgot-password" className="font-medium underline underline-offset-4">
+                  esqueci minha senha
+                </Link>
+                .
+              </>
+            )}
+          </p>
+        )}
         <Button type="submit" className="w-full" disabled={pending || inviteInvalid}>
           {pending ? "Criando conta..." : "Criar conta"}
         </Button>

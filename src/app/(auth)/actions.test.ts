@@ -143,7 +143,9 @@ describe("signUpWithPassword", () => {
       signUpError: { message: "Email rate limit exceeded" },
     });
     const result = await signUpWithPassword({ error: null }, formData(baseFields));
-    expect(result.error).toBe("Não foi possível criar a conta.");
+    expect(result.error).toBe(
+      "Não conseguimos enviar o e-mail de confirmação agora (sistema sobrecarregado). Tente de novo em alguns minutos."
+    );
     expect(logActivityMock).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ eventType: "email_rate_limited", level: "erro" })

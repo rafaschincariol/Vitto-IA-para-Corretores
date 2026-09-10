@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { siteConfig } from "@/lib/site-config";
 import { markPaidConversionTracked } from "./funnel-actions";
@@ -19,7 +20,12 @@ export function FunnelBeacon({ justConverted }: { justConverted: boolean }) {
   const welcome = searchParams.get("welcome") === "1";
 
   useEffect(() => {
-    if (welcome) trackEvent("email_confirmed");
+    if (welcome) {
+      trackEvent("email_confirmed");
+      // Sem isso, o redirecionamento pós-confirmação caía direto no
+      // dashboard sem nenhum sinal visual de que a conta ficou ativa.
+      toast.success("Conta confirmada! Bem-vindo ao Vitto.");
+    }
   }, [welcome]);
 
   useEffect(() => {

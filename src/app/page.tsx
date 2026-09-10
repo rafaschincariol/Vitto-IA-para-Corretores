@@ -191,7 +191,8 @@ export default async function Home() {
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Sem cartão de crédito para testar · Cancele quando quiser
+              Sem cartão de crédito para testar · Cancele quando quiser · Preço
+              fixo por corretora, equipe toda incluída
             </p>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Funciona com qualquer seguradora — o Vitto não vende seguro nem tem
