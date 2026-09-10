@@ -1,11 +1,12 @@
 import { FileCheck2, Wallet, TrendingUp } from "lucide-react";
-import { getDashboardData } from "@/lib/data/dashboard";
+import { getDashboardData, getUpcomingRenewals } from "@/lib/data/dashboard";
 import { requireProfile } from "@/lib/data/auth";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { KpiCard } from "@/components/kpi-card";
 import { RenewalsChart } from "@/components/renewals-chart";
 import { AssistantQuickAsk } from "./assistant-quick-ask";
 import { OnboardingChecklist } from "./onboarding-checklist";
+import { RenewalsList } from "./renewals-list";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -16,8 +17,9 @@ export default async function DashboardPage() {
   const { tenant } = await requireProfile();
   const supabase = await createSupabaseClient();
 
-  const [data, { count: memberCount }] = await Promise.all([
+  const [data, upcomingRenewals, { count: memberCount }] = await Promise.all([
     getDashboardData(),
+    getUpcomingRenewals(),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
   ]);
 
@@ -47,6 +49,7 @@ export default async function DashboardPage() {
           </div>
 
           <RenewalsChart data={data.renewalBuckets} />
+          <RenewalsList renewals={upcomingRenewals} />
         </>
       )}
     </div>

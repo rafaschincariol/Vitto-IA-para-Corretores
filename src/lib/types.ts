@@ -54,6 +54,7 @@ export type Policy = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  renewal_contact_marked_at: string | null;
 };
 
 export type PolicyWithClient = Policy & {
