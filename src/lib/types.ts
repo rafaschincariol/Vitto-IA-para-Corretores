@@ -8,6 +8,7 @@ export type Tenant = {
   id: string;
   name: string;
   created_at: string;
+  pending_deletion_at: string | null;
 };
 
 export type Profile = {

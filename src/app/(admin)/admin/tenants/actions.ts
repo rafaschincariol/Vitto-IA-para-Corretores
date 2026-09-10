@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { teardownTenant } from "@/lib/tenants/delete-tenant";
+import { scheduleTenantDeletion } from "@/lib/tenants/delete-tenant";
 
 async function requirePlatformAdminSession() {
   const supabase = await createSupabaseClient();
@@ -131,8 +131,9 @@ export async function resetMemberPassword(
 
 // Exclusão pelo admin (LGPD art. 18, VI) — mesmo efeito do "encerrar
 // conta" do próprio owner em src/app/(app)/settings/actions.ts, pro caso
-// do pedido chegar por suporte em vez de self-service. Exige digitar o
-// nome exato da corretora, igual ao self-service.
+// do pedido chegar por suporte em vez de self-service. Agenda com 30 dias
+// de carência (não apaga na hora) — ver src/lib/tenants/delete-tenant.ts.
+// Exige digitar o nome exato da corretora, igual ao self-service.
 export async function deleteTenant(
   tenantId: string,
   tenantName: string,
@@ -146,10 +147,25 @@ export async function deleteTenant(
 
   const supabase = await requirePlatformAdminSession();
   try {
-    await teardownTenant(supabase, tenantId, "admin_delete_tenant");
+    await scheduleTenantDeletion(supabase, tenantId, "admin_schedule_tenant_deletion");
   } catch {
-    return { error: "Não foi possível excluir. Tente novamente ou verifique manualmente." };
+    return { error: "Não foi possível agendar a exclusão. Tente novamente ou verifique manualmente." };
   }
 
+  revalidatePath(`/admin/tenants/${tenantId}`);
+  revalidatePath("/admin");
   redirect("/admin");
+}
+
+// Desfaz o agendamento de exclusão (dentro dos 30 dias) — não reativa a
+// assinatura Stripe automaticamente, isso a corretora faz de novo em
+// /billing quando quiser voltar a usar.
+export async function cancelTenantDeletion(tenantId: string): Promise<AdminActionState> {
+  const supabase = await requirePlatformAdminSession();
+  const { error } = await supabase.rpc("admin_cancel_tenant_deletion", { p_tenant_id: tenantId });
+  if (error) return { error: "Não foi possível cancelar a exclusão." };
+
+  revalidatePath(`/admin/tenants/${tenantId}`);
+  revalidatePath("/admin");
+  return { error: null };
 }

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
-import { teardownTenant } from "@/lib/tenants/delete-tenant";
+import { scheduleTenantDeletion } from "@/lib/tenants/delete-tenant";
 
 const tenantNameSchema = z.string().trim().min(1, "Informe um nome.");
 
@@ -60,11 +60,11 @@ export async function deleteAccount(
 
   const supabase = await createSupabaseClient();
   try {
-    await teardownTenant(supabase, tenant.id, "delete_own_tenant");
+    await scheduleTenantDeletion(supabase, tenant.id, "schedule_own_tenant_deletion");
   } catch {
     return { error: "Não foi possível encerrar a conta. Tente novamente ou fale com o suporte." };
   }
 
   await supabase.auth.signOut();
-  redirect("/login?deleted=1");
+  redirect("/login?deletion_scheduled=1");
 }

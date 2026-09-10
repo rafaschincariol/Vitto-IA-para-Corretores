@@ -45,10 +45,11 @@ function StatusBanner() {
     );
   }
 
-  if (searchParams.get("deleted") === "1") {
+  if (searchParams.get("deletion_scheduled") === "1") {
     return (
       <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-        Conta encerrada. Todos os dados foram apagados permanentemente.
+        Exclusão agendada. Sua conta e todos os dados serão apagados definitivamente em 30 dias.
+        Entre em contato com o suporte antes disso se quiser cancelar.
       </p>
     );
   }

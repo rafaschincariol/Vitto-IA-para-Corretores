@@ -17,6 +17,7 @@ export type AdminTenantRow = {
   active_policy_count: number;
   document_count: number;
   member_count: number;
+  pending_deletion_at: string | null;
 };
 
 // admin_list_tenants() (supabase/migrations/0010_platform_admin.sql) já

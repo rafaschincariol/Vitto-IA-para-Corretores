@@ -7,6 +7,7 @@ import { AppSidebarNav } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { SubscriptionLockedScreen } from "@/components/subscription-locked-screen";
+import { AccountDeletionLockedScreen } from "@/components/account-deletion-locked-screen";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -49,7 +50,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </header>
 
         <main className="flex-1 overflow-x-hidden p-4 md:p-6">
-          {locked ? (
+          {tenant.pending_deletion_at ? (
+            <AccountDeletionLockedScreen deletionDate={tenant.pending_deletion_at} />
+          ) : locked ? (
             <SubscriptionLockedScreen
               isOwner={profile.role === "owner"}
               trialExpired={subscription?.status === "trialing"}

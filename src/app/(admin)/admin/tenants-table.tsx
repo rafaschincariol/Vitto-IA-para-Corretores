@@ -101,6 +101,11 @@ export function TenantsTable({ tenants }: { tenants: AdminTenantRow[] }) {
                 </TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[t.status]}>{STATUS_LABELS[t.status]}</Badge>
+                  {t.pending_deletion_at && (
+                    <Badge variant="destructive" className="ml-1">
+                      Exclusão {new Date(t.pending_deletion_at).toLocaleDateString("pt-BR")}
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {t.status === "trialing" && t.trial_ends_at

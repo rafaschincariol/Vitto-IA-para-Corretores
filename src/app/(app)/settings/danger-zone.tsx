@@ -32,24 +32,26 @@ export function DangerZone({ tenantName }: { tenantName: string }) {
       <CardHeader>
         <CardTitle className="text-destructive">Zona de perigo</CardTitle>
         <CardDescription>
-          Encerrar a conta apaga permanentemente todos os clientes, apólices, documentos e o
-          acesso de toda a equipe — inclui o cancelamento da assinatura, se houver. Não tem como
-          desfazer.
+          Encerrar a conta cancela a assinatura na hora e agenda a exclusão definitiva de todos
+          os clientes, apólices, documentos e do acesso de toda a equipe para <strong>30 dias</strong>{" "}
+          a partir de hoje. O acesso fica bloqueado imediatamente. Dentro desse prazo, entre em
+          contato com o suporte para cancelar a exclusão.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Dialog open={open} onOpenChange={setOpen}>
           <Button type="button" variant="destructive" onClick={() => setOpen(true)}>
-            Encerrar conta e apagar todos os dados
+            Encerrar conta e agendar exclusão dos dados
           </Button>
           <DialogContent>
             <form action={formAction}>
               <DialogHeader>
                 <DialogTitle>Encerrar a conta de {tenantName}?</DialogTitle>
                 <DialogDescription>
-                  Isso apaga permanentemente todos os clientes, apólices e documentos da
-                  corretora, cancela a assinatura e remove o acesso de todos os membros da
-                  equipe. Para confirmar, digite o nome da corretora abaixo.
+                  A assinatura é cancelada na hora e o acesso é bloqueado imediatamente. Todos os
+                  dados da corretora são apagados definitivamente em 30 dias — dá tempo de
+                  cancelar pelo suporte se for engano. Para confirmar, digite o nome da corretora
+                  abaixo.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-2 py-2">
@@ -62,7 +64,7 @@ export function DangerZone({ tenantName }: { tenantName: string }) {
                   Cancelar
                 </Button>
                 <Button type="submit" variant="destructive" disabled={pending}>
-                  {pending ? "Encerrando..." : "Encerrar conta permanentemente"}
+                  {pending ? "Encerrando..." : "Encerrar conta e agendar exclusão"}
                 </Button>
               </DialogFooter>
             </form>

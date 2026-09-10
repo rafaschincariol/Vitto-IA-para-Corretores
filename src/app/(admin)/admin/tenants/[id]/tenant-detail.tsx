@@ -23,7 +23,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { AdminTenantMemberRow, AdminTenantRow } from "@/lib/data/admin";
-import { deleteTenant, resetMemberPassword, updateMemberProfile, updateTenantName } from "../actions";
+import {
+  cancelTenantDeletion,
+  deleteTenant,
+  resetMemberPassword,
+  updateMemberProfile,
+  updateTenantName,
+} from "../actions";
 
 const ROLE_LABELS: Record<AdminTenantMemberRow["role"], string> = {
   owner: "Admin da corretora",
@@ -115,41 +121,86 @@ export function TenantDetail({
       </Card>
 
       <div className="lg:col-span-2">
-        <TenantDangerZone tenantId={tenant.tenant_id} tenantName={tenant.tenant_name} />
+        <TenantDangerZone
+          tenantId={tenant.tenant_id}
+          tenantName={tenant.tenant_name}
+          pendingDeletionAt={tenant.pending_deletion_at}
+        />
       </div>
     </div>
   );
 }
 
-function TenantDangerZone({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
+function TenantDangerZone({
+  tenantId,
+  tenantName,
+  pendingDeletionAt,
+}: {
+  tenantId: string;
+  tenantName: string;
+  pendingDeletionAt: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
     deleteTenant.bind(null, tenantId, tenantName),
     { error: null }
   );
+  const [cancelPending, setCancelPending] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  async function handleCancelDeletion() {
+    setCancelPending(true);
+    setCancelError(null);
+    const result = await cancelTenantDeletion(tenantId);
+    setCancelPending(false);
+    if (result.error) setCancelError(result.error);
+  }
+
+  if (pendingDeletionAt) {
+    return (
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-destructive">Exclusão agendada</CardTitle>
+          <CardDescription>
+            Esta corretora será excluída permanentemente em{" "}
+            <strong>{new Date(pendingDeletionAt).toLocaleDateString("pt-BR")}</strong>. O acesso já
+            está bloqueado para todos os membros.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {cancelError && <p className="mb-2 text-sm text-destructive">{cancelError}</p>}
+          <Button variant="outline" onClick={handleCancelDeletion} disabled={cancelPending}>
+            {cancelPending ? "Cancelando..." : "Cancelar exclusão"}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-destructive/40">
       <CardHeader>
         <CardTitle className="text-destructive">Zona de perigo</CardTitle>
         <CardDescription>
-          Excluir apaga permanentemente todos os clientes, apólices, documentos e o acesso de
-          toda a equipe desta corretora — inclui o cancelamento da assinatura, se houver. Não tem
-          como desfazer. Use quando o pedido de encerramento vier por suporte.
+          Excluir cancela a assinatura na hora e agenda a exclusão definitiva de todos os
+          clientes, apólices, documentos e do acesso de toda a equipe para 30 dias a partir de
+          hoje. O acesso fica bloqueado imediatamente. Use quando o pedido de encerramento vier
+          por suporte.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Dialog open={open} onOpenChange={setOpen}>
           <Button type="button" variant="destructive" onClick={() => setOpen(true)}>
-            Excluir corretora e todos os dados
+            Excluir corretora e agendar exclusão dos dados
           </Button>
           <DialogContent>
             <form action={formAction}>
               <DialogHeader>
                 <DialogTitle>Excluir {tenantName}?</DialogTitle>
                 <DialogDescription>
-                  Isso apaga permanentemente todos os dados desta corretora e remove o acesso de
-                  todos os membros. Para confirmar, digite o nome da corretora abaixo.
+                  A assinatura é cancelada na hora e o acesso é bloqueado imediatamente. Todos os
+                  dados são apagados definitivamente em 30 dias — dá tempo de cancelar se for
+                  engano. Para confirmar, digite o nome da corretora abaixo.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-2 py-2">
@@ -162,7 +213,7 @@ function TenantDangerZone({ tenantId, tenantName }: { tenantId: string; tenantNa
                   Cancelar
                 </Button>
                 <Button type="submit" variant="destructive" disabled={pending}>
-                  {pending ? "Excluindo..." : "Excluir permanentemente"}
+                  {pending ? "Agendando..." : "Confirmar exclusão em 30 dias"}
                 </Button>
               </DialogFooter>
             </form>
