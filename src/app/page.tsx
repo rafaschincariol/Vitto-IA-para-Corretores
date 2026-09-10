@@ -291,7 +291,7 @@ export default async function Home() {
         </section>
 
         {/* How it works */}
-        <section className="py-20 sm:py-24">
+        <section id="como-funciona" className="py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold tracking-tight text-balance">
@@ -352,7 +352,7 @@ export default async function Home() {
         </section>
 
         {/* FAQ */}
-        <section className="py-20 sm:py-24">
+        <section id="faq" className="py-20 sm:py-24">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-center text-3xl font-semibold tracking-tight text-balance">
               Perguntas frequentes
