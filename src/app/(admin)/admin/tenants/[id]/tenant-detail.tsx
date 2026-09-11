@@ -50,6 +50,9 @@ export function TenantDetail({
     { error: null }
   );
 
+  const owner = members.find((m) => m.role === "owner") ?? null;
+  const team = members.filter((m) => m.role !== "owner");
+
   return (
     <div className="grid gap-6 lg:grid-cols-[2fr_3fr]">
       <Card>
@@ -90,37 +93,72 @@ export function TenantDetail({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Membros</CardTitle>
-          <CardDescription>Editar nome de exibição ou redefinir a senha de acesso de cada pessoa.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome e e-mail</TableHead>
-                  <TableHead>Papel</TableHead>
-                  <TableHead className="w-10" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.length === 0 && (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Conta da corretora</CardTitle>
+            <CardDescription>
+              Login do dono da corretora — quem criou a conta. Altere o e-mail ou redefina a senha aqui
+              se ele perder o acesso.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {owner ? (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome e e-mail</TableHead>
+                      <TableHead>Papel</TableHead>
+                      <TableHead className="w-10" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <MemberRow tenantId={tenant.tenant_id} member={owner} />
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma conta de dono encontrada.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Equipe</CardTitle>
+            <CardDescription>
+              Contas dos corretores cadastrados por essa corretora — editar nome de exibição ou
+              redefinir senha de cada pessoa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground">
-                      Nenhum membro encontrado.
-                    </TableCell>
+                    <TableHead>Nome e e-mail</TableHead>
+                    <TableHead>Papel</TableHead>
+                    <TableHead className="w-10" />
                   </TableRow>
-                )}
-                {members.map((member) => (
-                  <MemberRow key={member.profile_id} tenantId={tenant.tenant_id} member={member} />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {team.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground">
+                        Nenhum corretor de equipe cadastrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {team.map((member) => (
+                    <MemberRow key={member.profile_id} tenantId={tenant.tenant_id} member={member} />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="lg:col-span-2">
         <TenantDangerZone
