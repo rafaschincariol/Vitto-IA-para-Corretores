@@ -6,13 +6,23 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 // dev server; em produção o script-src continua sem 'unsafe-eval'.
 const isDev = process.env.NODE_ENV !== "production";
 
+// Google Tag Manager + o que ele injeta (tag de conversão do Google Ads)
+// precisam desses domínios liberados no CSP, senão o navegador bloqueia o
+// próprio gtm.js de carregar — o script no layout.tsx fica no HTML mas
+// nunca executa. GTM_SCRIPT_DOMAINS cobre o carregamento do contêiner e
+// da tag de conversão; GTM_CONNECT_DOMAINS cobre os pings de conversão que
+// essas tags disparam via fetch/beacon.
+const GTM_SCRIPT_DOMAINS = "https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net";
+const GTM_CONNECT_DOMAINS = "https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com ${GTM_SCRIPT_DOMAINS}${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net`,
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://va.vercel-scripts.com https://vitals.vercel-insights.com ${GTM_CONNECT_DOMAINS}`,
+  "frame-src https://www.googletagmanager.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",
