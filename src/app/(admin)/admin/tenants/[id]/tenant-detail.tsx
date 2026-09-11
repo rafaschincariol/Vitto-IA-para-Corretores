@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Copy, KeyRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import type { AdminTenantMemberRow, AdminTenantRow } from "@/lib/data/admin";
 import {
   cancelTenantDeletion,
   deleteTenant,
+  purgeIncompleteSignup,
   resetMemberPassword,
   updateMemberProfile,
   updateTenantName,
@@ -125,6 +127,7 @@ export function TenantDetail({
           tenantId={tenant.tenant_id}
           tenantName={tenant.tenant_name}
           pendingDeletionAt={tenant.pending_deletion_at}
+          ownerEmailConfirmed={tenant.owner_email_confirmed}
         />
       </div>
     </div>
@@ -135,10 +138,12 @@ function TenantDangerZone({
   tenantId,
   tenantName,
   pendingDeletionAt,
+  ownerEmailConfirmed,
 }: {
   tenantId: string;
   tenantName: string;
   pendingDeletionAt: string | null;
+  ownerEmailConfirmed: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
@@ -147,6 +152,10 @@ function TenantDangerZone({
   );
   const [cancelPending, setCancelPending] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [incompleteOpen, setIncompleteOpen] = useState(false);
+  const [incompletePending, setIncompletePending] = useState(false);
+  const [incompleteError, setIncompleteError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleCancelDeletion() {
     setCancelPending(true);
@@ -154,6 +163,19 @@ function TenantDangerZone({
     const result = await cancelTenantDeletion(tenantId);
     setCancelPending(false);
     if (result.error) setCancelError(result.error);
+  }
+
+  async function handlePurgeIncomplete() {
+    setIncompletePending(true);
+    setIncompleteError(null);
+    const result = await purgeIncompleteSignup(tenantId);
+    setIncompletePending(false);
+    if (result.error) {
+      setIncompleteError(result.error);
+      return;
+    }
+    setIncompleteOpen(false);
+    router.push("/admin");
   }
 
   if (pendingDeletionAt) {
@@ -172,6 +194,46 @@ function TenantDangerZone({
           <Button variant="outline" onClick={handleCancelDeletion} disabled={cancelPending}>
             {cancelPending ? "Cancelando..." : "Cancelar exclusão"}
           </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!ownerEmailConfirmed) {
+    return (
+      <Card className="border-amber-500/40">
+        <CardHeader>
+          <CardTitle className="text-amber-700 dark:text-amber-400">Cadastro incompleto</CardTitle>
+          <CardDescription>
+            O dono desta corretora nunca confirmou o e-mail — não consegue entrar, e o e-mail fica
+            bloqueado pra um novo cadastro. Como não há dado real de carteira ainda, a exclusão é
+            imediata (sem os 30 dias de carência da exclusão normal) e libera o e-mail na hora.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Dialog open={incompleteOpen} onOpenChange={setIncompleteOpen}>
+            <Button type="button" variant="outline" className="border-amber-500/40" onClick={() => setIncompleteOpen(true)}>
+              Excluir cadastro incompleto
+            </Button>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Excluir cadastro incompleto de {tenantName}?</DialogTitle>
+                <DialogDescription>
+                  Apaga a corretora na hora e libera o e-mail pra um cadastro novo. Não há como
+                  desfazer.
+                </DialogDescription>
+              </DialogHeader>
+              {incompleteError && <p className="text-sm text-destructive">{incompleteError}</p>}
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIncompleteOpen(false)} disabled={incompletePending}>
+                  Cancelar
+                </Button>
+                <Button type="button" variant="destructive" onClick={handlePurgeIncomplete} disabled={incompletePending}>
+                  {incompletePending ? "Excluindo..." : "Confirmar exclusão"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     );

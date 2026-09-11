@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { scheduleTenantDeletion } from "@/lib/tenants/delete-tenant";
+import { scheduleTenantDeletion, purgeTenant } from "@/lib/tenants/delete-tenant";
+import { logActivity } from "@/lib/log-activity";
 
 async function requirePlatformAdminSession() {
   const supabase = await createSupabaseClient();
@@ -166,6 +167,67 @@ export async function cancelTenantDeletion(tenantId: string): Promise<AdminActio
   if (error) return { error: "Não foi possível cancelar a exclusão." };
 
   revalidatePath(`/admin/tenants/${tenantId}`);
+  revalidatePath("/admin");
+  return { error: null };
+}
+
+// Cadastro incompleto: o trigger handle_new_user() (0001_init.sql) cria
+// tenant/profile assim que o formulário de cadastro é enviado, ANTES da
+// confirmação de e-mail — quem abandona nesse meio-tempo fica com um
+// cadastro fantasma, sem conseguir entrar nem se cadastrar de novo com o
+// mesmo e-mail. Diferente da exclusão normal (LGPD art. 18, VI, com 30 dias
+// de carência porque pode ter dado real da corretora pra proteger), aqui
+// não existe dado nenhum ainda — a exclusão é imediata, só pra liberar o
+// e-mail. Revalida as duas condições no servidor (não confia no que a UI
+// mandou) antes de apagar de verdade.
+export async function purgeIncompleteSignup(tenantId: string): Promise<AdminActionState> {
+  const supabase = await requirePlatformAdminSession();
+  const admin = createAdminClient();
+
+  // RLS de profiles/clients/policies/documents é por tenant do próprio
+  // usuário — platform_admins não têm tenant (handle_new_user() não cria
+  // um pra eles), então essas leituras entre corretoras só funcionam com
+  // o client de service role, que ignora RLS.
+  const { data: owner } = await admin
+    .from("profiles")
+    .select("id, email")
+    .eq("tenant_id", tenantId)
+    .eq("role", "owner")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle<{ id: string; email: string }>();
+
+  if (!owner) return { error: "Corretora não encontrada." };
+
+  const { data: authUser, error: authError } = await admin.auth.admin.getUserById(owner.id);
+  if (authError || !authUser.user) return { error: "Não foi possível verificar o cadastro." };
+  if (authUser.user.email_confirmed_at) {
+    return { error: "Esse e-mail já foi confirmado — use a exclusão normal, com carência de 30 dias." };
+  }
+
+  const [{ count: clientCount }, { count: policyCount }, { count: documentCount }] = await Promise.all([
+    admin.from("clients").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+    admin.from("policies").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+    admin.from("documents").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+  ]);
+  if ((clientCount ?? 0) > 0 || (policyCount ?? 0) > 0 || (documentCount ?? 0) > 0) {
+    return { error: "Essa corretora já tem dados cadastrados — não é um cadastro incompleto. Use a exclusão normal." };
+  }
+
+  try {
+    await purgeTenant(tenantId);
+  } catch {
+    return { error: "Não foi possível excluir o cadastro." };
+  }
+
+  await logActivity(supabase, {
+    category: "sistema",
+    eventType: "incomplete_signup_purged",
+    level: "info",
+    message: `Cadastro incompleto excluído pelo admin: ${owner.email}.`,
+    metadata: { email: owner.email },
+  });
+
   revalidatePath("/admin");
   return { error: null };
 }

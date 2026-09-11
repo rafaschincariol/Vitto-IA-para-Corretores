@@ -8,6 +8,7 @@ export type AdminTenantRow = {
   created_at: string;
   owner_full_name: string | null;
   owner_email: string | null;
+  owner_email_confirmed: boolean;
   status: SubscriptionStatus;
   trial_ends_at: string | null;
   current_period_end: string | null;

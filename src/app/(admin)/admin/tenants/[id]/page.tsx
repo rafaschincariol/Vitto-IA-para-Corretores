@@ -35,6 +35,11 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
           </p>
         </div>
         <Badge variant={STATUS_VARIANT[tenant.status]}>{STATUS_LABELS[tenant.status]}</Badge>
+        {!tenant.owner_email_confirmed && (
+          <Badge variant="outline" className="border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-400">
+            Cadastro incompleto
+          </Badge>
+        )}
         {tenant.stripe_customer_id && (
           <Button variant="outline" size="sm" asChild>
             <a

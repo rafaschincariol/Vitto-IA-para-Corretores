@@ -36,17 +36,21 @@ const PAGE_SIZE = 10;
 
 export function TenantsTable({ tenants }: { tenants: AdminTenantRow[] }) {
   const [query, setQuery] = useState("");
+  const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [page, setPage] = useState(0);
+
+  const incompleteCount = useMemo(() => tenants.filter((t) => !t.owner_email_confirmed).length, [tenants]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return tenants;
-    return tenants.filter((t) =>
-      [t.tenant_name, t.owner_full_name, t.owner_email].some((field) =>
+    return tenants.filter((t) => {
+      if (incompleteOnly && t.owner_email_confirmed) return false;
+      if (!q) return true;
+      return [t.tenant_name, t.owner_full_name, t.owner_email].some((field) =>
         field?.toLowerCase().includes(q)
-      )
-    );
-  }, [tenants, query]);
+      );
+    });
+  }, [tenants, query, incompleteOnly]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount - 1);
@@ -54,15 +58,30 @@ export function TenantsTable({ tenants }: { tenants: AdminTenantRow[] }) {
 
   return (
     <div className="space-y-3">
-      <Input
-        placeholder="Buscar por corretora, responsável ou e-mail..."
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setPage(0);
-        }}
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          placeholder="Buscar por corretora, responsável ou e-mail..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(0);
+          }}
+          className="max-w-sm"
+        />
+        {incompleteCount > 0 && (
+          <Button
+            type="button"
+            variant={incompleteOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setIncompleteOnly((v) => !v);
+              setPage(0);
+            }}
+          >
+            Cadastros incompletos ({incompleteCount})
+          </Button>
+        )}
+      </div>
 
       <div className="rounded-md border">
         <Table>
@@ -98,6 +117,11 @@ export function TenantsTable({ tenants }: { tenants: AdminTenantRow[] }) {
                     <span>{t.owner_full_name ?? "—"}</span>
                     <span className="text-xs text-muted-foreground">{t.owner_email ?? "—"}</span>
                   </div>
+                  {!t.owner_email_confirmed && (
+                    <Badge variant="outline" className="mt-1 border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                      Cadastro incompleto
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[t.status]}>{STATUS_LABELS[t.status]}</Badge>
