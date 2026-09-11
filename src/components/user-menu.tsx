@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,15 @@ function initials(name: string) {
   return (parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "");
 }
 
-export function UserMenu({ name, email }: { name: string; email: string }) {
+export function UserMenu({
+  name,
+  email,
+  isPlatformAdmin,
+}: {
+  name: string;
+  email: string;
+  isPlatformAdmin?: boolean;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -32,6 +41,17 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{email}</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isPlatformAdmin && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/admin">
+                <ShieldCheck className="size-4" />
+                Painel admin
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <form action={signOut}>
           <DropdownMenuItem asChild>
             <button type="submit" className="w-full text-left">

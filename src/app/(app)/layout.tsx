@@ -19,6 +19,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const locked = isSubscriptionLocked(subscription);
   const justConverted = subscription?.status === "active" && !subscription.paid_conversion_tracked;
 
+  // Dono de corretora que também é administrador da plataforma (mesmo
+  // e-mail nas duas tabelas) fica preso no dashboard da corretora depois
+  // de logar com uma sessão já existente, sem passar pelo redirect de
+  // login que manda admin direto pro /admin — esse atalho no menu resolve.
+  const { data: isPlatformAdmin } = await supabase
+    .from("platform_admins")
+    .select("email")
+    .eq("email", profile.email)
+    .maybeSingle();
+
   return (
     <div className="flex min-h-screen">
       <Suspense fallback={null}>
@@ -50,7 +60,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-            <UserMenu name={profile.full_name ?? ""} email={profile.email} />
+            <UserMenu
+              name={profile.full_name ?? ""}
+              email={profile.email}
+              isPlatformAdmin={!!isPlatformAdmin}
+            />
           </div>
         </header>
 
