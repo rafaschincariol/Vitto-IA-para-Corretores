@@ -10,6 +10,7 @@ import {
   UsersRound,
   ShieldCheck,
   Building2,
+  Kanban,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { HeroMockup } from "@/components/marketing/hero-mockup";
+import { PipelineMockup } from "@/components/marketing/pipeline-mockup";
 import { BrowserFrame } from "@/components/marketing/browser-frame";
 import { LegalFooter } from "@/components/marketing/legal-footer";
 import { siteConfig } from "@/lib/site-config";
@@ -38,6 +40,13 @@ const FEATURES: {
     title: "Sua carteira, fora da planilha",
     description:
       "Ache qualquer cliente ou apólice em segundos, por nome, CPF/CNPJ, e-mail ou telefone — sem rolar planilha nem abrir pasta atrás de pasta.",
+  },
+  {
+    icon: Kanban,
+    title: "Funil de vendas com IA",
+    description:
+      "Cadastre prospects, mude de etapa arrastando o card e acompanhe taxa de conversão e valor em negociação. A IA aponta gargalos e sugere o próximo passo.",
+    visual: <PipelineMockup />,
   },
   {
     icon: CalendarClock,
@@ -88,6 +97,7 @@ const PRICING_ITEMS = [
   `${siteConfig.trialDays} dias grátis pra testar, sem cartão`,
   "Equipe sem limite de usuários",
   "Cadastro automático de apólices por IA",
+  "Funil de vendas com etapas editáveis e IA incluso",
   "Assistente com IA incluso",
   "Cancele quando quiser, direto pelo painel",
 ];
@@ -108,6 +118,10 @@ const FAQ_ITEMS = [
   {
     q: "Posso cancelar quando quiser?",
     a: "Sim, direto pelo painel de assinatura, sem precisar entrar em contato ou justificar.",
+  },
+  {
+    q: "O Vitto tem funil de vendas pra prospects, ou só gerencia clientes que já fecharam?",
+    a: "Tem os dois. Além da carteira de clientes com apólice ativa, o Vitto tem um funil de vendas pra você cadastrar prospects, mover entre etapas (que você mesmo define) e acompanhar taxa de conversão — com a IA apontando onde o funil está travando.",
   },
   {
     q: "E se eu tiver mais de um corretor na equipe?",
@@ -133,6 +147,13 @@ export default async function Home() {
     operatingSystem: "Web",
     description: siteConfig.description,
     url: siteConfig.url,
+    featureList: [
+      "Assistente de IA para a carteira",
+      "Cadastro automático de apólices via PDF/foto",
+      "Painel de vencimentos (30/60/90 dias)",
+      "Funil de vendas com etapas editáveis e analytics de conversão",
+      "Equipe sem limite de usuários",
+    ],
     offers: {
       "@type": "Offer",
       price: siteConfig.price.replace(/[^\d,]/g, "").replace(",", "."),
