@@ -3,7 +3,7 @@ export const siteConfig = {
   fullName: "Vitto IA para Corretores",
   tagline: "Sistema com IA para corretora de seguros",
   description:
-    "O sistema com IA que cadastra apólices sozinho via PDF, controla vencimentos e responde sobre sua carteira. R$ 49,99/mês, 14 dias grátis.",
+    "O sistema com IA que cadastra apólices por PDF, controla vencimentos, organiza seu funil de vendas e responde sobre sua carteira. R$ 49,99/mês, 14 dias grátis.",
   price: "R$ 49,99",
   priceInterval: "/mês por corretora",
   trialDays: 14,

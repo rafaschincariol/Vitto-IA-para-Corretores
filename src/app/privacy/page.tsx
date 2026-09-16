@@ -55,12 +55,13 @@ export default function PrivacyPage() {
                 número de cartão).
               </li>
               <li>
-                <strong>Dados de clientes da corretora:</strong> nome, CPF/CNPJ,
-                contato e dados de apólices que o corretor insere manualmente, por
-                planilha ou por upload de documento. Esses dados pertencem a
-                terceiros que não têm relação direta com o {siteConfig.name} — o
-                corretor é responsável por ter base legal para tratá-los (ver
-                nossos{" "}
+                <strong>Dados de clientes e prospects da corretora:</strong> nome,
+                CPF/CNPJ, contato, dados de apólices e informações do funil de
+                vendas (etapa, valor estimado, notas) que o corretor insere
+                manualmente, por planilha ou por upload de documento. Esses dados
+                pertencem a terceiros que não têm relação direta com o{" "}
+                {siteConfig.name} — o corretor é responsável por ter base legal
+                para tratá-los (ver nossos{" "}
                 <a href="/terms" className="underline underline-offset-2">
                   Termos de Uso
                 </a>

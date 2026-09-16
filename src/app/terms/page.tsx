@@ -68,16 +68,17 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-medium">4. Responsabilidade pelos dados de clientes</h2>
+            <h2 className="font-heading text-lg font-medium">4. Responsabilidade pelos dados de clientes e prospects</h2>
             <p className="mt-2 text-muted-foreground">
-              Os dados de clientes finais (nome, CPF/CNPJ, contato, apólices)
-              que você insere na plataforma pertencem a terceiros que não têm
-              relação direta com o {siteConfig.name}. Você é o controlador
-              desses dados perante seus clientes, e é responsável por ter base
-              legal para tratá-los (por exemplo, a relação de corretagem já
-              existente). O {siteConfig.name} atua como operador,
-              processando esses dados apenas para prestar o serviço contratado
-              por você.
+              Os dados de clientes finais e prospects (nome, CPF/CNPJ, contato,
+              apólices, informações do funil de vendas) que você insere na
+              plataforma pertencem a terceiros que não têm relação direta com o{" "}
+              {siteConfig.name}. Você é o controlador desses dados perante seus
+              clientes e prospects, e é responsável por ter base legal para
+              tratá-los (por exemplo, a relação de corretagem já existente ou o
+              consentimento do prospect em ser contatado). O {siteConfig.name}{" "}
+              atua como operador, processando esses dados apenas para prestar o
+              serviço contratado por você.
             </p>
           </section>
 
