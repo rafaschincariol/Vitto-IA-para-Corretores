@@ -35,6 +35,9 @@ function StageRow({ stage, isFirst, isLast }: { stage: PipelineStage; isFirst: b
       if (result.error) {
         toast.error(result.error);
         setName(stage.name);
+      } else {
+        toast.success("Etapa renomeada.");
+        router.refresh();
       }
     });
   }
@@ -52,6 +55,7 @@ function StageRow({ stage, isFirst, isLast }: { stage: PipelineStage; isFirst: b
             startTransition(async () => {
               const result = await reorderStage(stage.id, "up");
               if (result.error) toast.error(result.error);
+              else router.refresh();
             })
           }
         >
@@ -67,6 +71,7 @@ function StageRow({ stage, isFirst, isLast }: { stage: PipelineStage; isFirst: b
             startTransition(async () => {
               const result = await reorderStage(stage.id, "down");
               if (result.error) toast.error(result.error);
+              else router.refresh();
             })
           }
         >
@@ -92,7 +97,11 @@ function StageRow({ stage, isFirst, isLast }: { stage: PipelineStage; isFirst: b
           if (!window.confirm(`Excluir a etapa "${stage.name}"?`)) return;
           startTransition(async () => {
             const result = await deleteStage(stage.id);
-            if (result.error) toast.error(result.error);
+            if (result.error) {
+              toast.error(result.error);
+              return;
+            }
+            toast.success("Etapa excluída.");
             router.refresh();
           });
         }}
@@ -118,6 +127,7 @@ export function StageSettingsDialog({ stages }: { stages: PipelineStage[] }) {
         toast.error(result.error);
         return;
       }
+      toast.success("Etapa criada.");
       setNewStageName("");
       router.refresh();
     });

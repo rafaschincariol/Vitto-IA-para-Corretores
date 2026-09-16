@@ -15,12 +15,14 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ProspectFormDialog } from "./prospect-form-dialog";
-import { moveProspectStage, reorderProspectsInStage } from "./actions";
+import { createStage, deleteStage, moveProspectStage, renameStage, reorderProspectsInStage } from "./actions";
 import type { PipelineStage, ProspectWithStage, Profile } from "@/lib/types";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -82,6 +84,67 @@ function ProspectCard({
   );
 }
 
+function StageColumnHeader({ stage }: { stage: PipelineStage }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(stage.name);
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+
+  function commit() {
+    const trimmed = name.trim();
+    setEditing(false);
+    if (!trimmed || trimmed === stage.name) {
+      setName(stage.name);
+      return;
+    }
+    startTransition(async () => {
+      const result = await renameStage(stage.id, trimmed);
+      if (result.error) {
+        toast.error(result.error);
+        setName(stage.name);
+      } else {
+        toast.success("Etapa renomeada.");
+        router.refresh();
+      }
+    });
+  }
+
+  if (editing) {
+    return (
+      <Input
+        autoFocus
+        value={name}
+        disabled={pending}
+        onChange={(e) => setName(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+          if (e.key === "Escape") {
+            setName(stage.name);
+            setEditing(false);
+          }
+        }}
+        className="h-7 text-sm font-semibold"
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="group flex min-w-0 items-center gap-1 text-left"
+      aria-label={`Renomear etapa "${stage.name}"`}
+    >
+      <p className="truncate text-sm font-semibold">{stage.name}</p>
+      <Pencil className="size-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
+    </button>
+  );
+}
+
 function StageColumn({
   stage,
   prospects,
@@ -97,16 +160,42 @@ function StageColumn({
 }) {
   const { setNodeRef } = useDroppable({ id: stage.id, data: { stageId: stage.id } });
   const totalValue = prospects.reduce((sum, p) => sum + (p.estimated_value ?? 0), 0);
+  const [deleting, startDeleting] = useTransition();
+  const router = useRouter();
 
   return (
     <div className="flex w-72 shrink-0 flex-col rounded-md border bg-muted/30">
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold">{stage.name}</p>
+        <div className="flex min-w-0 items-center gap-2">
+          <StageColumnHeader stage={stage} />
           {stage.is_won && <Badge className="bg-emerald-600 text-white">Ganho</Badge>}
           {stage.is_lost && <Badge variant="destructive">Perdido</Badge>}
         </div>
-        <Badge variant="outline">{prospects.length}</Badge>
+        <div className="flex shrink-0 items-center gap-1">
+          <Badge variant="outline">{prospects.length}</Badge>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-6"
+            disabled={deleting}
+            aria-label={`Excluir etapa "${stage.name}"`}
+            onClick={() => {
+              if (!window.confirm(`Excluir a etapa "${stage.name}"?`)) return;
+              startDeleting(async () => {
+                const result = await deleteStage(stage.id);
+                if (result.error) {
+                  toast.error(result.error);
+                  return;
+                }
+                toast.success("Etapa excluída.");
+                router.refresh();
+              });
+            }}
+          >
+            <Trash2 className="size-3.5 text-destructive" />
+          </Button>
+        </div>
       </div>
       {totalValue > 0 && (
         <p className="border-b px-3 py-1.5 text-xs text-muted-foreground">{currencyFormatter.format(totalValue)}</p>
@@ -126,6 +215,84 @@ function StageColumn({
         {prospects.length === 0 && (
           <p className="px-1 py-4 text-center text-xs text-muted-foreground">Arraste um card pra cá</p>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Coluna final do board pra criar etapa direto no kanban, sem precisar abrir
+// o diálogo "Etapas" — a pesquisa de usabilidade mostrou que ninguém achava
+// o botão de configurações pra isso.
+function AddStageColumn() {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+
+  function handleCreate() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    startTransition(async () => {
+      const result = await createStage(trimmed);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Etapa criada.");
+      setName("");
+      setOpen(false);
+      router.refresh();
+    });
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex h-10 w-56 shrink-0 items-center justify-center gap-1.5 self-start rounded-md border border-dashed text-sm text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+      >
+        <Plus className="size-4" />
+        Nova etapa
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex w-56 shrink-0 flex-col gap-2 rounded-md border bg-muted/30 p-2">
+      <Input
+        autoFocus
+        placeholder="Nome da etapa"
+        value={name}
+        disabled={pending}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleCreate();
+          }
+          if (e.key === "Escape") {
+            setOpen(false);
+            setName("");
+          }
+        }}
+        className="h-8"
+      />
+      <div className="flex gap-2">
+        <Button type="button" size="sm" onClick={handleCreate} disabled={pending || !name.trim()}>
+          Adicionar
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setOpen(false);
+            setName("");
+          }}
+        >
+          Cancelar
+        </Button>
       </div>
     </div>
   );
@@ -235,6 +402,7 @@ export function PipelineBoard({
             teamMembers={teamMembers}
           />
         ))}
+        <AddStageColumn />
       </div>
       <DragOverlay>
         {activeCard && (
