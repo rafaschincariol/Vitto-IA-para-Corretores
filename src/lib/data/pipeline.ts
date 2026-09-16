@@ -179,3 +179,28 @@ export async function getPipelineAnalytics(
     avgDaysToClose,
   };
 }
+
+// Texto plano do snapshot de analytics, usado tanto pelos insights de IA
+// (src/lib/ai/pipeline-insights.ts) quanto pelo contexto do assistente de
+// chat (src/lib/data/assistant-context.ts) — mesma fonte de números pros
+// dois, sem duplicar a formatação.
+export function formatPipelineAnalytics(analytics: PipelineAnalytics): string {
+  const lines = [
+    `Total de prospects no funil: ${analytics.totalProspects}.`,
+    `Valor total estimado em negociação: R$ ${analytics.totalPipelineValue.toFixed(2)}.`,
+    `Ganhos: ${analytics.wonCount}. Perdidos: ${analytics.lostCount}. Taxa de conversão geral (ganho / (ganho+perdido)): ${analytics.overallConversionRate}%.`,
+    analytics.avgDaysToClose !== null
+      ? `Tempo médio até fechar (criação → etapa de ganho): ${analytics.avgDaysToClose} dia(s).`
+      : "Ainda não há prospects fechados como ganhos suficientes para calcular tempo médio até fechar.",
+    "",
+    "Pessoas por etapa (ocupação atual):",
+    ...analytics.stageOccupancy.map((s) => `- ${s.stageName}: ${s.count} prospect(s)${s.isWon ? " (etapa de ganho)" : s.isLost ? " (etapa de perda)" : ""}`),
+    "",
+    "Funil de conversão por etapa (quantos prospects distintos já alcançaram cada etapa, e taxa de avanço vindo da etapa anterior):",
+    ...analytics.stageFunnel.map(
+      (s) =>
+        `- ${s.stageName}: ${s.reachedCount} prospect(s) já alcançaram${s.conversionFromPrevious !== null ? ` (${s.conversionFromPrevious}% vindos da etapa anterior)` : ""}`
+    ),
+  ];
+  return lines.join("\n");
+}

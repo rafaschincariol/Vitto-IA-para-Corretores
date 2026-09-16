@@ -6,20 +6,20 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const PLACEHOLDER_EXAMPLES = [
+const DEFAULT_PLACEHOLDER_EXAMPLES = [
   "Quais apólices vencem essa semana?",
   "Qual o prêmio total da minha carteira?",
   "Resuma a carteira do cliente João",
 ];
 
-// Ponto de entrada da IA logo no topo do Dashboard — não só no menu. A
+// Ponto de entrada da IA logo no topo de uma página — não só no menu. A
 // pergunta é enviada pra /assistant via query param; quem processa e
 // manda pro modelo de verdade é o AssistantChat (chat.tsx), que lê esse
 // param ao montar.
-export function AssistantQuickAsk() {
+export function AssistantQuickAsk({ placeholderExamples = DEFAULT_PLACEHOLDER_EXAMPLES }: { placeholderExamples?: string[] }) {
   const router = useRouter();
   const [value, setValue] = useState("");
-  const placeholder = PLACEHOLDER_EXAMPLES[0];
+  const placeholder = placeholderExamples[0];
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();

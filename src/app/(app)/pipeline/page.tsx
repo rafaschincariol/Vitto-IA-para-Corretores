@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/data/auth";
 import { getOrSeedPipelineStages, getProspectsBoard } from "@/lib/data/pipeline";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AssistantQuickAsk } from "@/components/assistant-quick-ask";
 import { PipelineBoard } from "./pipeline-board";
 import { ProspectsTable } from "./prospects-table";
 import { ProspectFormDialog } from "./prospect-form-dialog";
@@ -48,6 +49,14 @@ export default async function PipelinePage() {
           <ProspectFormDialog stages={stages} isOwner={isOwner} teamMembers={teamMembers ?? []} />
         </div>
       </div>
+
+      <AssistantQuickAsk
+        placeholderExamples={[
+          "Quais prospects estão parados há mais tempo numa etapa?",
+          "Qual a taxa de conversão do funil esse mês?",
+          "Quais prospects devo priorizar hoje?",
+        ]}
+      />
 
       <Tabs defaultValue="board">
         <TabsList>
