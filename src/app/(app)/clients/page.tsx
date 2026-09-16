@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { AiImportNudge } from "@/components/ai-import-nudge";
+import { ExportSpreadsheetButton } from "@/components/export-spreadsheet-button";
 import { ClientFormDialog } from "./client-form-dialog";
 import { ImportClientsDialog } from "./import-clients-dialog";
 import { ClientsTable } from "./clients-table";
@@ -29,6 +30,15 @@ export default async function ClientsPage() {
         </div>
         <div className="flex gap-2">
           <ImportClientsDialog />
+          <ExportSpreadsheetButton
+            filename="clientes.xlsx"
+            rows={(clients ?? []).map((c) => ({
+              Nome: c.name,
+              "CPF/CNPJ": c.cpf_cnpj ?? "",
+              "E-mail": c.email ?? "",
+              Telefone: c.phone ?? "",
+            }))}
+          />
           <ClientFormDialog isOwner={isOwner} teamMembers={teamMembers ?? []} />
         </div>
       </div>
