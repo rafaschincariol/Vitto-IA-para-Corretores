@@ -4,7 +4,7 @@ import { requireProfile } from "@/lib/data/auth";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { KpiCard } from "@/components/kpi-card";
 import { RenewalsChart } from "@/components/renewals-chart";
-import { AssistantQuickAsk } from "./assistant-quick-ask";
+import { AssistantQuickAsk } from "@/components/assistant-quick-ask";
 import { OnboardingChecklist } from "./onboarding-checklist";
 import { RenewalsList } from "./renewals-list";
 

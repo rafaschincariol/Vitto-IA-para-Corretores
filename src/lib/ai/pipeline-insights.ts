@@ -1,6 +1,6 @@
 import "server-only";
 import { getAnthropicClient } from "./anthropic";
-import type { PipelineAnalytics } from "@/lib/data/pipeline";
+import { formatPipelineAnalytics, type PipelineAnalytics } from "@/lib/data/pipeline";
 
 export type PipelineInsights = {
   headline: string;
@@ -47,27 +47,6 @@ const INSIGHTS_TOOL = {
   },
 };
 
-function formatSnapshot(analytics: PipelineAnalytics): string {
-  const lines = [
-    `Total de prospects no funil: ${analytics.totalProspects}.`,
-    `Valor total estimado em negociação: R$ ${analytics.totalPipelineValue.toFixed(2)}.`,
-    `Ganhos: ${analytics.wonCount}. Perdidos: ${analytics.lostCount}. Taxa de conversão geral (ganho / (ganho+perdido)): ${analytics.overallConversionRate}%.`,
-    analytics.avgDaysToClose !== null
-      ? `Tempo médio até fechar (criação → etapa de ganho): ${analytics.avgDaysToClose} dia(s).`
-      : "Ainda não há prospects fechados como ganhos suficientes para calcular tempo médio até fechar.",
-    "",
-    "Pessoas por etapa (ocupação atual):",
-    ...analytics.stageOccupancy.map((s) => `- ${s.stageName}: ${s.count} prospect(s)${s.isWon ? " (etapa de ganho)" : s.isLost ? " (etapa de perda)" : ""}`),
-    "",
-    "Funil de conversão por etapa (quantos prospects distintos já alcançaram cada etapa, e taxa de avanço vindo da etapa anterior):",
-    ...analytics.stageFunnel.map(
-      (s) =>
-        `- ${s.stageName}: ${s.reachedCount} prospect(s) já alcançaram${s.conversionFromPrevious !== null ? ` (${s.conversionFromPrevious}% vindos da etapa anterior)` : ""}`
-    ),
-  ];
-  return lines.join("\n");
-}
-
 // Gera insights sob demanda (não a cada carregamento de página) a partir do
 // snapshot estruturado de getPipelineAnalytics — nunca de busca vetorial ou
 // texto livre, então não há risco de o modelo inventar números: ele só
@@ -89,7 +68,7 @@ export async function generatePipelineInsights(analytics: PipelineAnalytics): Pr
     messages: [
       {
         role: "user",
-        content: `Analise este snapshot do funil de vendas e registre os insights com a ferramenta registrar_insights_funil:\n\n${formatSnapshot(analytics)}`,
+        content: `Analise este snapshot do funil de vendas e registre os insights com a ferramenta registrar_insights_funil:\n\n${formatPipelineAnalytics(analytics)}`,
       },
     ],
   });

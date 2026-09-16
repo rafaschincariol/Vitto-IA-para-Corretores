@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getPipelineAnalytics, formatPipelineAnalytics } from "@/lib/data/pipeline";
 
 type PolicyRow = {
   status: string;
@@ -68,4 +69,16 @@ export async function getPortfolioSnapshot(supabase: SupabaseClient, tenantId: s
   }
 
   return lines.join("\n");
+}
+
+// Mesmo espírito do snapshot de carteira acima, mas pro funil de vendas —
+// reaproveita getPipelineAnalytics (a mesma fonte usada pela tela de
+// analytics e pelos insights de IA do funil), então o assistente responde
+// com os números reais, nunca inventados.
+export async function getFunnelSnapshot(supabase: SupabaseClient, tenantId: string): Promise<string> {
+  const analytics = await getPipelineAnalytics(supabase, tenantId);
+  if (analytics.totalProspects === 0) {
+    return "Nenhum prospect cadastrado no funil de vendas ainda.";
+  }
+  return formatPipelineAnalytics(analytics);
 }
