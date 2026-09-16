@@ -108,6 +108,53 @@ export type TenantInvite = {
   accepted_at: string | null;
 };
 
+export type PipelineStage = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  position: number;
+  is_won: boolean;
+  is_lost: boolean;
+  created_at: string;
+};
+
+export type Prospect = {
+  id: string;
+  tenant_id: string;
+  stage_id: string;
+  client_id: string | null;
+  name: string;
+  cpf_cnpj: string | null;
+  email: string | null;
+  phone: string | null;
+  estimated_value: number | null;
+  insurance_type: string | null;
+  notes: string | null;
+  lost_reason: string | null;
+  position: number;
+  assigned_to: string | null;
+  created_by: string | null;
+  stage_changed_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProspectWithStage = Prospect & {
+  stage: Pick<PipelineStage, "id" | "name" | "is_won" | "is_lost">;
+};
+
+export type ProspectStageHistoryEntry = {
+  id: string;
+  tenant_id: string;
+  prospect_id: string;
+  from_stage_id: string | null;
+  from_stage_name: string | null;
+  to_stage_id: string | null;
+  to_stage_name: string;
+  changed_by: string | null;
+  changed_at: string;
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",
