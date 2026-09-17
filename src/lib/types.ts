@@ -155,6 +155,25 @@ export type ProspectStageHistoryEntry = {
   changed_at: string;
 };
 
+export type SucessaoSimulacao = {
+  id: string;
+  tenant_id: string;
+  client_id: string | null;
+  client_name: string;
+  assets: import("./sucessao/types").Asset[];
+  marital_regime: import("./sucessao/types").MaritalRegime;
+  existing_protection: number;
+  monthly_maintenance: number;
+  custom_duration_months: number;
+  scenario: "min" | "max";
+  notes: string | null;
+  result: import("./sucessao/types").SimulationResult;
+  assigned_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",
