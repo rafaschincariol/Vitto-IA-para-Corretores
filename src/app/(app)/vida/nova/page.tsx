@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
+import { getClientFinancialProfile } from "@/lib/data/client-financial-profile";
 import { Button } from "@/components/ui/button";
 import { SimuladorForm } from "../simulador-form";
 import type { Client } from "@/lib/types";
@@ -17,6 +18,8 @@ export default async function NovaVidaPage({ searchParams }: { searchParams: Pro
     client = data ?? null;
   }
 
+  const prefill = client ? await getClientFinancialProfile(supabase, client.id) : undefined;
+
   return (
     <div className="space-y-6">
       <div>
@@ -29,7 +32,7 @@ export default async function NovaVidaPage({ searchParams }: { searchParams: Pro
         <h1 className="text-2xl font-semibold tracking-tight">Nova simulação de necessidade de seguro de vida</h1>
       </div>
 
-      <SimuladorForm clientId={client?.id ?? null} clientName={client?.name ?? null} />
+      <SimuladorForm clientId={client?.id ?? null} clientName={client?.name ?? null} prefill={prefill} />
     </div>
   );
 }

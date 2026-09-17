@@ -16,7 +16,8 @@ export function calculateInssGap(input: InssGapInput): InssGapResult {
 
   const monthlyGap = Math.max(0, input.familyMonthlyIncome - estimatedPension);
   const annualGap = monthlyGap * 12;
-  const suggestedCoverage = annualGap * Math.max(0, input.dependencyYears);
+  const rawCoverage = annualGap * Math.max(0, input.dependencyYears);
+  const suggestedCoverage = Math.max(0, rawCoverage - Math.max(0, input.existingInsurance));
 
   return {
     inssCeiling: INSS_CEILING_2026,

@@ -45,7 +45,12 @@ export default async function DashboardPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <KpiCard title="Apólices ativas" value={String(data.activePolicies)} icon={FileCheck2} />
             <KpiCard title="Prêmio total" value={currencyFormatter.format(data.totalPremium)} icon={Wallet} />
-            <KpiCard title="Taxa de renovação" value={`${data.renewalRate}%`} icon={TrendingUp} />
+            <KpiCard
+              title="Taxa de renovação"
+              value={`${data.renewalRate}%`}
+              icon={TrendingUp}
+              tooltip="Apólices em renovação ÷ (apólices em renovação + canceladas/vencidas). Só considera apólices que já passaram por um desses status, não a carteira toda."
+            />
           </div>
 
           <RenewalsChart data={data.renewalBuckets} />

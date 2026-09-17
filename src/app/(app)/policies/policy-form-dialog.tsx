@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { InfoTooltip } from "@/components/info-tooltip";
 import {
   Select,
   SelectContent,
@@ -143,7 +144,14 @@ export function PolicyFormDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="flex items-center gap-1.5">
+                  Status
+                  <InfoTooltip>
+                    &quot;Em Renovação&quot; conta como renovada e &quot;Cancelado&quot;/&quot;Vencido&quot; contam
+                    como perdidas na Taxa de Renovação do dashboard — mantenha atualizado pra esse número refletir a
+                    carteira de verdade.
+                  </InfoTooltip>
+                </Label>
                 <Select name="status" defaultValue={policy?.status ?? "ativo"} required>
                   <SelectTrigger id="status" className="w-full">
                     <SelectValue />

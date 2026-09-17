@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { InfoTooltip } from "@/components/info-tooltip";
+import { PrefillNote } from "@/components/prefill-note";
 import { calculateInssGap, formatCurrency } from "@/lib/protecao-inss/calculator";
 import { DEFAULT_DEPENDENCY_YEARS, INSS_CEILING_2026 } from "@/lib/protecao-inss/constants";
 import {
@@ -18,15 +20,18 @@ import {
   deleteProtecaoInssSimulacao,
 } from "./actions";
 import type { ProtecaoInssSimulacao } from "@/lib/types";
+import type { ClientFinancialProfile } from "@/lib/data/client-financial-profile";
 
 export function SimuladorForm({
   simulacao,
   clientId,
   clientName,
+  prefill,
 }: {
   simulacao?: ProtecaoInssSimulacao;
   clientId?: string | null;
   clientName?: string | null;
+  prefill?: ClientFinancialProfile;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -34,13 +39,18 @@ export function SimuladorForm({
   const [name, setName] = useState(simulacao?.client_name ?? clientName ?? "");
   const [contributionSalary, setContributionSalary] = useState(simulacao?.contribution_salary ?? 0);
   const [dependentsCount, setDependentsCount] = useState(simulacao?.dependents_count ?? 0);
-  const [familyMonthlyIncome, setFamilyMonthlyIncome] = useState(simulacao?.family_monthly_income ?? 0);
+  const [familyMonthlyIncome, setFamilyMonthlyIncome] = useState(
+    simulacao?.family_monthly_income ?? prefill?.familyMonthlyIncome?.value ?? 0
+  );
   const [dependencyYears, setDependencyYears] = useState(simulacao?.dependency_years ?? DEFAULT_DEPENDENCY_YEARS);
+  const [existingInsurance, setExistingInsurance] = useState(
+    simulacao?.existing_insurance ?? prefill?.existingInsurance?.value ?? 0
+  );
   const [notes, setNotes] = useState(simulacao?.notes ?? "");
 
   const result = useMemo(
-    () => calculateInssGap({ contributionSalary, dependentsCount, familyMonthlyIncome, dependencyYears }),
-    [contributionSalary, dependentsCount, familyMonthlyIncome, dependencyYears]
+    () => calculateInssGap({ contributionSalary, dependentsCount, familyMonthlyIncome, dependencyYears, existingInsurance }),
+    [contributionSalary, dependentsCount, familyMonthlyIncome, dependencyYears, existingInsurance]
   );
 
   const hasResult = familyMonthlyIncome > 0;
@@ -63,6 +73,7 @@ export function SimuladorForm({
         dependents_count: dependentsCount,
         family_monthly_income: familyMonthlyIncome,
         dependency_years: dependencyYears,
+        existing_insurance: existingInsurance,
         notes: notes.trim() || null,
       });
       if (res.error) {
@@ -126,7 +137,13 @@ export function SimuladorForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contribution_salary">Salário de contribuição ao INSS (R$/mês)</Label>
+              <Label htmlFor="contribution_salary" className="flex items-center gap-1.5">
+                Salário de contribuição ao INSS (R$/mês)
+                <InfoTooltip>
+                  Base usada pra estimar o benefício do INSS. Se o cliente não souber o valor exato de contribuição,
+                  use o salário bruto como aproximação — o valor é sempre capado no teto do INSS.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="contribution_salary"
                 type="number"
@@ -135,13 +152,16 @@ export function SimuladorForm({
                 onChange={(e) => setContributionSalary(Number(e.target.value) || 0)}
                 placeholder="Ex: 5000"
               />
-              <p className="text-xs text-muted-foreground">
-                Capado no teto do INSS ({formatCurrency(INSS_CEILING_2026)}) — se o cliente não souber o valor exato,
-                use o salário bruto como estimativa.
-              </p>
+              <p className="text-xs text-muted-foreground">Capado no teto do INSS ({formatCurrency(INSS_CEILING_2026)}).</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dependents_count">Dependentes habilitados</Label>
+              <Label htmlFor="dependents_count" className="flex items-center gap-1.5">
+                Dependentes habilitados
+                <InfoTooltip>
+                  Cônjuge/companheiro(a), filhos menores de 21 anos (ou inválidos/com deficiência) e outros
+                  dependentes já habilitados junto ao INSS. Cada um soma 10% na pensão por morte, até 100%.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="dependents_count"
                 type="number"
@@ -162,6 +182,25 @@ export function SimuladorForm({
                 onChange={(e) => setFamilyMonthlyIncome(Number(e.target.value) || 0)}
                 placeholder="Some a renda de todos que sustentam a casa hoje"
               />
+              {!simulacao && prefill?.familyMonthlyIncome && <PrefillNote field={prefill.familyMonthlyIncome} />}
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="existing_insurance" className="flex items-center gap-1.5">
+                Seguro de vida já contratado (R$)
+                <InfoTooltip>
+                  Capital de seguros de vida que o cliente já tem hoje — é descontado do capital sugerido, pra não
+                  recomendar proteção duplicada.
+                </InfoTooltip>
+              </Label>
+              <Input
+                id="existing_insurance"
+                type="number"
+                min={0}
+                value={existingInsurance || ""}
+                onChange={(e) => setExistingInsurance(Number(e.target.value) || 0)}
+                placeholder="0"
+              />
+              {!simulacao && prefill?.existingInsurance && <PrefillNote field={prefill.existingInsurance} />}
             </div>
           </div>
         </CardContent>
@@ -190,8 +229,13 @@ export function SimuladorForm({
           <Card>
             <CardContent className="space-y-4 pt-6">
               <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="dependency_years" className="shrink-0">
+                <Label htmlFor="dependency_years" className="flex shrink-0 items-center gap-1.5">
                   Por quantos anos a família dependeria dessa renda
+                  <InfoTooltip>
+                    Horizonte usado pra transformar o gap mensal num capital único — não é o prazo de uma apólice,
+                    é só até quando a proteção do INSS deixaria de fazer falta (filhos crescerem, cônjuge se
+                    recolocar no mercado etc.).
+                  </InfoTooltip>
                 </Label>
                 <span className="text-sm font-semibold">{dependencyYears} anos</span>
               </div>
@@ -219,8 +263,9 @@ export function SimuladorForm({
                 </p>
                 <p className="text-5xl font-bold tracking-tight">{formatCurrency(result.suggestedCoverage)}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Gap mensal ({formatCurrency(result.monthlyGap)}) × 12 × {dependencyYears} anos. O INSS ajuda, mas
-                  não substitui a renda da família sozinho — esse é o valor que fecha a diferença.
+                  Gap mensal ({formatCurrency(result.monthlyGap)}) × 12 × {dependencyYears} anos
+                  {existingInsurance > 0 ? ` − proteção já contratada (${formatCurrency(existingInsurance)})` : ""}. O
+                  INSS ajuda, mas não substitui a renda da família sozinho — esse é o valor que fecha a diferença.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
