@@ -117,4 +117,73 @@ describe("calculateVidaNeed", () => {
     expect(result.timeline[2].need).toBeCloseTo(20_000, 2);
     expect(result.timeline[4].need).toBeCloseTo(0, 2);
   });
+
+  it("dívida SAC amortiza o principal de forma linear (mesma curva da simplificação linear)", () => {
+    const result = calculateVidaNeed(
+      baseInput({
+        monthlyIncome: 0,
+        dependencyYears: 10,
+        finalCosts: 0,
+        debts: [
+          {
+            id: "1",
+            description: "Financiamento SAC",
+            balance: 120_000,
+            payoffYears: 10,
+            annualInterestRate: 12,
+            amortizationType: "sac",
+          },
+        ],
+      })
+    );
+    // SAC amortiza o principal em parcelas fixas — o saldo devedor cai de forma
+    // linear no tempo, igual à simplificação padrão, mesmo com juros informados.
+    expect(result.timeline[5].need).toBeCloseTo(60_000, 0);
+    expect(result.timeline[10].need).toBeCloseTo(0, 2);
+  });
+
+  it("dívida Price deixa a família mais desprotegida no meio do prazo do que a simplificação linear sugere", () => {
+    const linear = calculateVidaNeed(
+      baseInput({
+        monthlyIncome: 0,
+        dependencyYears: 10,
+        finalCosts: 0,
+        debts: [{ id: "1", description: "Financiamento", balance: 120_000, payoffYears: 10 }],
+      })
+    );
+    const price = calculateVidaNeed(
+      baseInput({
+        monthlyIncome: 0,
+        dependencyYears: 10,
+        finalCosts: 0,
+        debts: [
+          {
+            id: "1",
+            description: "Financiamento Price",
+            balance: 120_000,
+            payoffYears: 10,
+            annualInterestRate: 12,
+            amortizationType: "price",
+          },
+        ],
+      })
+    );
+    // Na tabela Price, os primeiros pagamentos são majoritariamente juros — o
+    // saldo devedor real no meio do prazo é maior do que a queda linear supõe.
+    expect(price.timeline[5].need).toBeGreaterThan(linear.timeline[5].need);
+    expect(price.timeline[0].need).toBeCloseTo(120_000, 0);
+    expect(price.timeline[10].need).toBeCloseTo(0, 0);
+  });
+
+  it("sem taxa de juros informada, amortização Price/SAC volta pra linear (não sabemos o contrato)", () => {
+    const semTaxa = calculateVidaNeed(
+      baseInput({
+        monthlyIncome: 0,
+        dependencyYears: 10,
+        finalCosts: 0,
+        debts: [{ id: "1", description: "Financiamento", balance: 100_000, payoffYears: 10, amortizationType: "price" }],
+      })
+    );
+    expect(semTaxa.timeline[5].need).toBeCloseTo(50_000, 0);
+  });
 });

@@ -37,9 +37,21 @@ export type SimulationInput = {
   monthlyMaintenance: number;
 };
 
+export type ItcmdBracketBreakdown = {
+  /** Limite superior da faixa (R$) — Infinity na última. */
+  limit: number;
+  rate: number;
+  /** Parte da base tributável que caiu dentro dessa faixa. */
+  amountInBracket: number;
+  /** Imposto gerado só por essa faixa. */
+  taxInBracket: number;
+};
+
 export interface SimulationResult {
   totalAssets: number;
   taxableBase: number;
+  /** Memória de cálculo do ITCMD, faixa a faixa — só as faixas efetivamente usadas. */
+  itcmdBrackets: ItcmdBracketBreakdown[];
   costs: {
     itcmd: CostRange;
     notary: CostRange;

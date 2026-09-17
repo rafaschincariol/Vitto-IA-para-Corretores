@@ -10,11 +10,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { PrefillNote } from "@/components/prefill-note";
 import { calculateVidaNeed, formatCurrency } from "@/lib/vida/calculator";
 import { DEFAULT_DEPENDENCY_YEARS, DEFAULT_FINAL_COSTS, DEFAULT_REAL_RETURN_RATE } from "@/lib/vida/constants";
-import type { Child, Debt } from "@/lib/vida/types";
+import type { AmortizationType, Child, Debt } from "@/lib/vida/types";
+
+const AMORTIZATION_LABELS: Record<AmortizationType, string> = {
+  linear: "Linear (padrão)",
+  sac: "SAC",
+  price: "Price",
+};
 import { saveVidaSimulacao, createProspectFromVidaSimulacao, deleteVidaSimulacao } from "./actions";
 import { VidaCharts } from "./vida-charts";
 import type { VidaSimulacao } from "@/lib/types";
@@ -218,8 +225,10 @@ export function SimuladorForm({
               <Label className="flex items-center gap-1.5">
                 Dívidas (financiamentos, empréstimos)
                 <InfoTooltip>
-                  O saldo de cada dívida é projetado caindo linearmente até o ano de quitação informado — a
-                  necessidade de proteção some junto conforme a dívida é paga.
+                  Por padrão, o saldo cai linearmente até o ano de quitação. Se você souber a taxa de juros do
+                  contrato, escolha SAC (saldo cai mais rápido no início) ou Price (parcela fixa, saldo cai mais
+                  devagar no início — quem tem financiamento Price fica mais desprotegido nos primeiros anos do que a
+                  linha reta sugere).
                 </InfoTooltip>
               </Label>
               <Button type="button" variant="outline" size="sm" onClick={() => setDebts((prev) => [...prev, newDebt()])}>
@@ -229,38 +238,69 @@ export function SimuladorForm({
             </div>
             <div className="space-y-2">
               {debts.map((debt) => (
-                <div key={debt.id} className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
-                  <Input
-                    placeholder="Descrição (ex: Financiamento do imóvel)"
-                    value={debt.description}
-                    onChange={(e) => updateDebt(debt.id, { description: e.target.value })}
-                    className="sm:flex-1"
-                  />
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="Saldo devedor (R$)"
-                    value={debt.balance || ""}
-                    onChange={(e) => updateDebt(debt.id, { balance: Number(e.target.value) || 0 })}
-                    className="sm:w-44"
-                  />
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="Anos até quitar"
-                    value={debt.payoffYears || ""}
-                    onChange={(e) => updateDebt(debt.id, { payoffYears: Number(e.target.value) || 0 })}
-                    className="sm:w-36"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Remover dívida"
-                    onClick={() => setDebts((prev) => prev.filter((d) => d.id !== debt.id))}
-                  >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
+                <div key={debt.id} className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Descrição (ex: Financiamento do imóvel)"
+                      value={debt.description}
+                      onChange={(e) => updateDebt(debt.id, { description: e.target.value })}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remover dívida"
+                      onClick={() => setDebts((prev) => prev.filter((d) => d.id !== debt.id))}
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="Saldo devedor (R$)"
+                      value={debt.balance || ""}
+                      onChange={(e) => updateDebt(debt.id, { balance: Number(e.target.value) || 0 })}
+                      className="sm:w-40"
+                    />
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="Anos até quitar"
+                      value={debt.payoffYears || ""}
+                      onChange={(e) => updateDebt(debt.id, { payoffYears: Number(e.target.value) || 0 })}
+                      className="sm:w-32"
+                    />
+                    <Select
+                      value={debt.amortizationType ?? "linear"}
+                      onValueChange={(v) => updateDebt(debt.id, { amortizationType: v as AmortizationType })}
+                    >
+                      <SelectTrigger className="sm:w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(AMORTIZATION_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {debt.amortizationType && debt.amortizationType !== "linear" && (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        placeholder="Juros (% a.a.)"
+                        value={debt.annualInterestRate || ""}
+                        onChange={(e) => updateDebt(debt.id, { annualInterestRate: Number(e.target.value) || 0 })}
+                        className="sm:w-36"
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
               {debts.length === 0 && <p className="text-xs text-muted-foreground">Nenhuma dívida adicionada.</p>}

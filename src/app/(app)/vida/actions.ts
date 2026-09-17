@@ -12,6 +12,8 @@ const debtSchema = z.object({
   description: z.string().trim().min(1, "Descreva a dívida."),
   balance: z.number().nonnegative(),
   payoffYears: z.number().int().nonnegative(),
+  annualInterestRate: z.number().nonnegative().max(100).optional(),
+  amortizationType: z.enum(["linear", "sac", "price"]).optional(),
 });
 
 const childSchema = z.object({

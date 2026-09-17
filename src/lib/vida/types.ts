@@ -1,9 +1,21 @@
+export type AmortizationType = "linear" | "sac" | "price";
+
 export type Debt = {
   id: string;
   description: string;
   balance: number;
   /** Anos até quitar a dívida — usado pra projetar o saldo devedor decrescente na Linha da Vida. */
   payoffYears: number;
+  /** Taxa de juros anual do financiamento (%) — opcional. Sem ela, a queda do saldo é sempre linear. */
+  annualInterestRate?: number;
+  /**
+   * Sistema de amortização. SAC quita o principal em parcelas fixas (saldo cai mais rápido
+   * nos primeiros anos); Price (tabela Price) tem parcela fixa mas amortização crescente
+   * (saldo cai mais devagar no início). "linear" é a simplificação padrão — usada sempre
+   * que a taxa de juros não é informada, já que a maioria dos clientes não sabe de cabeça
+   * a taxa exata do contrato.
+   */
+  amortizationType?: AmortizationType;
 };
 
 export type Child = {

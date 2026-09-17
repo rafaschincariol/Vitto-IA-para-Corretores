@@ -19,6 +19,7 @@ import { saveSucessaoSimulacao, createProspectFromSimulacao, deleteSucessaoSimul
 import { ExportSucessaoPdfButton } from "./export-sucessao-pdf-button";
 import { ImportAssetsButton } from "./import-assets-button";
 import { SucessaoCharts } from "./sucessao-charts";
+import { ItcmdBreakdown } from "./itcmd-breakdown";
 import type { SucessaoSimulacao } from "@/lib/types";
 import type { ClientFinancialProfile } from "@/lib/data/client-financial-profile";
 
@@ -413,6 +414,7 @@ export function SimuladorForm({
             <summary className="cursor-pointer px-4 py-3 text-sm font-medium">Ver detalhamento por categoria</summary>
             <div className="space-y-6 border-t p-4">
               <SucessaoCharts result={result} />
+              <ItcmdBreakdown brackets={result.itcmdBrackets} taxableBase={result.taxableBase} itcmdTotal={result.costs.itcmd.min} />
             </div>
           </details>
 

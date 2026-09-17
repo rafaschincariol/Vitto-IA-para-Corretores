@@ -98,6 +98,18 @@ describe("calculateSuccessionCosts", () => {
     expect(result.maintenance.high).toBe(36000);
   });
 
+  it("memória de cálculo do ITCMD expõe só as faixas efetivamente usadas, com o imposto de cada uma", () => {
+    // 300.000 = 100k na faixa de 2% (0-100k) + 200k na faixa de 4% (100k-500k)
+    const result = calculateSuccessionCosts(
+      baseInput({ assets: [{ id: "1", description: "a", type: AssetType.OTHER, value: 300_000 }] })
+    );
+    expect(result.itcmdBrackets).toHaveLength(2);
+    expect(result.itcmdBrackets[0]).toMatchObject({ rate: 0.02, amountInBracket: 100_000, taxInBracket: 2_000 });
+    expect(result.itcmdBrackets[1]).toMatchObject({ rate: 0.04, amountInBracket: 200_000, taxInBracket: 8_000 });
+    const totalFromBrackets = result.itcmdBrackets.reduce((sum, b) => sum + b.taxInBracket, 0);
+    expect(totalFromBrackets).toBeCloseTo(result.costs.itcmd.min, 2);
+  });
+
   it("proteção já contratada (seguro/PGBL/VGBL) reduz a meta de liquidez sugerida, sem ficar negativa", () => {
     const semProtecao = calculateSuccessionCosts(
       baseInput({ assets: [{ id: "1", description: "a", type: AssetType.OTHER, value: 2_000_000 }] })
