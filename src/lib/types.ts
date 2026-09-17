@@ -232,6 +232,27 @@ export type PrestamistaSimulacao = {
   updated_at: string;
 };
 
+export type PrevidenciaSimulacao = {
+  id: string;
+  tenant_id: string;
+  client_id: string | null;
+  client_name: string;
+  monthly_contribution: number;
+  existing_balance: number;
+  years_to_retirement: number;
+  annual_return_rate: number;
+  annual_taxable_income: number;
+  files_complete_declaration: boolean;
+  plan_type: import("./previdencia/types").PlanType;
+  tax_regime: import("./previdencia/types").TaxRegime;
+  notes: string | null;
+  result: import("./previdencia/types").PrevidenciaResult;
+  assigned_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",
