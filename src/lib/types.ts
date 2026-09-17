@@ -214,6 +214,24 @@ export type VidaSimulacao = {
   updated_at: string;
 };
 
+export type PrestamistaSimulacao = {
+  id: string;
+  tenant_id: string;
+  client_id: string | null;
+  client_name: string;
+  financed_amount: number;
+  annual_interest_rate: number;
+  term_years: number;
+  amortization_system: import("./prestamista/types").AmortizationSystem;
+  years_elapsed: number;
+  notes: string | null;
+  result: import("./prestamista/types").PrestamistaResult;
+  assigned_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",
