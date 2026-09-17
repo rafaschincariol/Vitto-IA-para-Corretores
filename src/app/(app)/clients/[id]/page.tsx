@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, ShieldAlert, LineChart, Home, ChevronDown, Calculator } from "lucide-react";
+import { ArrowLeft, ShieldCheck, ShieldAlert, LineChart, Home, ChevronDown, Calculator, PiggyBank } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ const SIMULATOR_LINKS = [
   { href: "sucessao/nova", label: "Sucessão patrimonial", icon: ShieldCheck },
   { href: "protecao-inss/nova", label: "Gap de proteção (INSS)", icon: ShieldAlert },
   { href: "prestamista/nova", label: "Seguro prestamista", icon: Home },
+  { href: "previdencia/nova", label: "Previdência privada", icon: PiggyBank },
 ];
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {

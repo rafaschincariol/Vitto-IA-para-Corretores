@@ -16,6 +16,7 @@ import {
   Sparkles,
   Settings,
   CreditCard,
+  PiggyBank,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/sucessao", label: "Simulador de Sucessão", icon: ShieldCheck },
   { href: "/protecao-inss", label: "Gap de Proteção (INSS)", icon: ShieldAlert },
   { href: "/prestamista", label: "Seguro Prestamista", icon: Home },
+  { href: "/previdencia", label: "Previdência Privada", icon: PiggyBank },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/policies", label: "Apólices", icon: FileText },
   { href: "/documents", label: "Documentos", icon: FolderOpen },
