@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               {[client.cpf_cnpj, client.email, client.phone].filter(Boolean).join(" · ") || "Sem dados de contato"}
             </p>
           </div>
-          <ClientFormDialog client={client} isOwner={isOwner} teamMembers={teamMembers ?? []} />
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/sucessao/nova?client_id=${client.id}`}>
+                <ShieldCheck className="size-4" />
+                Simular sucessão
+              </Link>
+            </Button>
+            <ClientFormDialog client={client} isOwner={isOwner} teamMembers={teamMembers ?? []} />
+          </div>
         </div>
       </div>
 
