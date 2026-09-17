@@ -3,6 +3,7 @@ export type InssGapInput = {
   dependentsCount: number;
   familyMonthlyIncome: number;
   dependencyYears: number;
+  existingInsurance: number;
 };
 
 export interface InssGapResult {
@@ -13,6 +14,6 @@ export interface InssGapResult {
   estimatedPension: number;
   monthlyGap: number;
   annualGap: number;
-  /** Meta de capital pra cobrir o gap mensal pelos anos de dependência informados. Nunca negativo. */
+  /** Meta de capital pra cobrir o gap mensal pelos anos de dependência informados, já descontado o seguro de vida já contratado. Nunca negativo. */
   suggestedCoverage: number;
 }

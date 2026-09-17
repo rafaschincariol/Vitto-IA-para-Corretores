@@ -9,6 +9,7 @@ function baseInput(overrides: Partial<InssGapInput> = {}): InssGapInput {
     dependentsCount: 2,
     familyMonthlyIncome: 10_000,
     dependencyYears: 15,
+    existingInsurance: 0,
     ...overrides,
   };
 }
@@ -51,5 +52,14 @@ describe("calculateInssGap", () => {
   it("capital sugerido é o gap anual multiplicado pelos anos de dependência", () => {
     const result = calculateInssGap(baseInput({ dependencyYears: 10 }));
     expect(result.suggestedCoverage).toBeCloseTo(result.annualGap * 10, 2);
+  });
+
+  it("seguro de vida já contratado reduz o capital sugerido, sem ficar negativo", () => {
+    const semProtecao = calculateInssGap(baseInput({ dependencyYears: 10 }));
+    const comProtecaoParcial = calculateInssGap(baseInput({ dependencyYears: 10, existingInsurance: 50_000 }));
+    const comProtecaoTotal = calculateInssGap(baseInput({ dependencyYears: 10, existingInsurance: 999_999_999 }));
+
+    expect(comProtecaoParcial.suggestedCoverage).toBeCloseTo(semProtecao.suggestedCoverage - 50_000, 2);
+    expect(comProtecaoTotal.suggestedCoverage).toBe(0);
   });
 });

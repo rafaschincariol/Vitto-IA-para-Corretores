@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
+import { getClientFinancialProfile } from "@/lib/data/client-financial-profile";
 import { Button } from "@/components/ui/button";
 import { SimuladorForm } from "../simulador-form";
 import type { Client } from "@/lib/types";
@@ -21,6 +22,8 @@ export default async function NovaSucessaoPage({
     client = data ?? null;
   }
 
+  const prefill = client ? await getClientFinancialProfile(supabase, client.id) : undefined;
+
   return (
     <div className="space-y-6">
       <div>
@@ -33,7 +36,12 @@ export default async function NovaSucessaoPage({
         <h1 className="text-2xl font-semibold tracking-tight">Nova simulação de sucessão</h1>
       </div>
 
-      <SimuladorForm clientId={client?.id ?? null} clientName={client?.name ?? null} advisorName={profile.full_name ?? profile.email} />
+      <SimuladorForm
+        clientId={client?.id ?? null}
+        clientName={client?.name ?? null}
+        advisorName={profile.full_name ?? profile.email}
+        prefill={prefill}
+      />
     </div>
   );
 }

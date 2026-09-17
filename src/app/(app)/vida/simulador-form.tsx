@@ -10,12 +10,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { InfoTooltip } from "@/components/info-tooltip";
+import { PrefillNote } from "@/components/prefill-note";
 import { calculateVidaNeed, formatCurrency } from "@/lib/vida/calculator";
 import { DEFAULT_DEPENDENCY_YEARS, DEFAULT_FINAL_COSTS, DEFAULT_REAL_RETURN_RATE } from "@/lib/vida/constants";
 import type { Child, Debt } from "@/lib/vida/types";
 import { saveVidaSimulacao, createProspectFromVidaSimulacao, deleteVidaSimulacao } from "./actions";
 import { VidaCharts } from "./vida-charts";
 import type { VidaSimulacao } from "@/lib/types";
+import type { ClientFinancialProfile } from "@/lib/data/client-financial-profile";
 
 function newDebt(): Debt {
   return { id: Math.random().toString(36).slice(2, 10), description: "", balance: 0, payoffYears: 10 };
@@ -29,22 +32,28 @@ export function SimuladorForm({
   simulacao,
   clientId,
   clientName,
+  prefill,
 }: {
   simulacao?: VidaSimulacao;
   clientId?: string | null;
   clientName?: string | null;
+  prefill?: ClientFinancialProfile;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const [name, setName] = useState(simulacao?.client_name ?? clientName ?? "");
-  const [monthlyIncome, setMonthlyIncome] = useState(simulacao?.monthly_income ?? 0);
+  const [monthlyIncome, setMonthlyIncome] = useState(simulacao?.monthly_income ?? prefill?.monthlyIncome?.value ?? 0);
   const [dependencyYears, setDependencyYears] = useState(simulacao?.dependency_years ?? DEFAULT_DEPENDENCY_YEARS);
   const [debts, setDebts] = useState<Debt[]>(simulacao?.debts ?? []);
   const [children, setChildren] = useState<Child[]>(simulacao?.children ?? []);
-  const [currentInvestments, setCurrentInvestments] = useState(simulacao?.current_investments ?? 0);
+  const [currentInvestments, setCurrentInvestments] = useState(
+    simulacao?.current_investments ?? prefill?.currentInvestments?.value ?? 0
+  );
   const [monthlyContribution, setMonthlyContribution] = useState(simulacao?.monthly_contribution ?? 0);
-  const [existingInsurance, setExistingInsurance] = useState(simulacao?.existing_insurance ?? 0);
+  const [existingInsurance, setExistingInsurance] = useState(
+    simulacao?.existing_insurance ?? prefill?.existingInsurance?.value ?? 0
+  );
   const [realReturnRate, setRealReturnRate] = useState(simulacao?.real_return_rate ?? DEFAULT_REAL_RETURN_RATE);
   const [finalCosts, setFinalCosts] = useState(simulacao?.final_costs ?? DEFAULT_FINAL_COSTS);
   const [notes, setNotes] = useState(simulacao?.notes ?? "");
@@ -183,9 +192,16 @@ export function SimuladorForm({
                 onChange={(e) => setMonthlyIncome(Number(e.target.value) || 0)}
                 placeholder="Ex: 8000"
               />
+              {!simulacao && prefill?.monthlyIncome && <PrefillNote field={prefill.monthlyIncome} />}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dependency_years">Anos de dependência da família</Label>
+              <Label htmlFor="dependency_years" className="flex items-center gap-1.5">
+                Anos de dependência da família
+                <InfoTooltip>
+                  Horizonte da projeção (número DIME e Linha da Vida) — normalmente até o filho mais novo terminar a
+                  faculdade ou a família reconstruir independência financeira.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="dependency_years"
                 type="number"
@@ -199,7 +215,13 @@ export function SimuladorForm({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Dívidas (financiamentos, empréstimos)</Label>
+              <Label className="flex items-center gap-1.5">
+                Dívidas (financiamentos, empréstimos)
+                <InfoTooltip>
+                  O saldo de cada dívida é projetado caindo linearmente até o ano de quitação informado — a
+                  necessidade de proteção some junto conforme a dívida é paga.
+                </InfoTooltip>
+              </Label>
               <Button type="button" variant="outline" size="sm" onClick={() => setDebts((prev) => [...prev, newDebt()])}>
                 <Plus className="size-4" />
                 Adicionar dívida
@@ -247,7 +269,13 @@ export function SimuladorForm({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Filhos</Label>
+              <Label className="flex items-center gap-1.5">
+                Filhos
+                <InfoTooltip>
+                  Informe o custo anual de faculdade só se houver plano — o cálculo assume início aos 18 anos e 5
+                  anos de duração, contando quanto ainda falta pagar a partir da idade atual do filho.
+                </InfoTooltip>
+              </Label>
               <Button type="button" variant="outline" size="sm" onClick={() => setChildren((prev) => [...prev, newChild()])}>
                 <Plus className="size-4" />
                 Adicionar filho
@@ -307,9 +335,16 @@ export function SimuladorForm({
                 onChange={(e) => setCurrentInvestments(Number(e.target.value) || 0)}
                 placeholder="0"
               />
+              {!simulacao && prefill?.currentInvestments && <PrefillNote field={prefill.currentInvestments} />}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="monthly_contribution">Aporte mensal atual (R$)</Label>
+              <Label htmlFor="monthly_contribution" className="flex items-center gap-1.5">
+                Aporte mensal atual (R$)
+                <InfoTooltip>
+                  Quanto o cliente já investe por mês hoje — alimenta o crescimento do patrimônio na Linha da Vida,
+                  junto com a rentabilidade real assumida.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="monthly_contribution"
                 type="number"
@@ -329,6 +364,7 @@ export function SimuladorForm({
                 onChange={(e) => setExistingInsurance(Number(e.target.value) || 0)}
                 placeholder="0"
               />
+              {!simulacao && prefill?.existingInsurance && <PrefillNote field={prefill.existingInsurance} />}
             </div>
             <div className="space-y-2">
               <Label htmlFor="real_return_rate">Rentabilidade real assumida (% ao ano)</Label>
@@ -344,7 +380,13 @@ export function SimuladorForm({
               <p className="text-xs text-muted-foreground">Parâmetro editável — nunca uma promessa de rentabilidade.</p>
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="final_costs">Custos finais (funeral, documentação, inventário simplificado)</Label>
+              <Label htmlFor="final_costs" className="flex items-center gap-1.5">
+                Custos finais (funeral, documentação, inventário simplificado)
+                <InfoTooltip>
+                  Estimativa conservadora — parâmetro editável, entra somado na necessidade total (método DIME) todo
+                  ano da projeção, já que pode acontecer a qualquer momento dentro do horizonte simulado.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="final_costs"
                 type="number"
@@ -364,6 +406,10 @@ export function SimuladorForm({
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-destructive">
                 <AlertTriangle className="size-3.5" />
                 Necessidade total de proteção
+                <InfoTooltip>
+                  Método DIME: Dívidas + Income (renda × anos de dependência) + faculdade dos filhos ainda não paga +
+                  custos finais — o total que a família precisaria cobrir se a renda faltasse hoje.
+                </InfoTooltip>
               </p>
               <p className="text-4xl font-bold tracking-tight text-destructive">{formatCurrency(result.totalNeed)}</p>
               <p className="text-sm text-muted-foreground">

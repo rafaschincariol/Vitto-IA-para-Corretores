@@ -183,6 +183,7 @@ export type ProtecaoInssSimulacao = {
   dependents_count: number;
   family_monthly_income: number;
   dependency_years: number;
+  existing_insurance: number;
   notes: string | null;
   result: import("./protecao-inss/types").InssGapResult;
   assigned_to: string | null;

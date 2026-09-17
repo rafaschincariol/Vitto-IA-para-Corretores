@@ -39,11 +39,17 @@ export default async function PipelineAnalyticsPage() {
               value={currencyFormatter.format(analytics.totalPipelineValue)}
               icon={Wallet}
             />
-            <KpiCard title="Taxa de conversão" value={`${analytics.overallConversionRate}%`} icon={Target} />
+            <KpiCard
+              title="Taxa de conversão"
+              value={`${analytics.overallConversionRate}%`}
+              icon={Target}
+              tooltip="Ganhos ÷ (ganhos + perdidos). Prospects ainda em negociação não entram nessa conta."
+            />
             <KpiCard
               title="Tempo médio até fechar"
               value={analytics.avgDaysToClose !== null ? `${analytics.avgDaysToClose} dia(s)` : "—"}
               icon={TrendingUp}
+              tooltip="Média de dias entre a criação do prospect e o momento em que ele entrou numa etapa de ganho."
             />
           </div>
 

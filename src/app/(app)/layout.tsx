@@ -10,6 +10,7 @@ import { SubscriptionLockedScreen } from "@/components/subscription-locked-scree
 import { AccountDeletionLockedScreen } from "@/components/account-deletion-locked-screen";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { FunnelBeacon } from "./funnel-beacon";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -30,57 +31,59 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     .maybeSingle();
 
   return (
-    <div className="flex min-h-screen">
-      <Suspense fallback={null}>
-        <FunnelBeacon justConverted={justConverted} />
-      </Suspense>
-      <aside className="hidden w-56 shrink-0 border-r bg-sidebar text-sidebar-foreground md:flex md:flex-col">
-        <div className="border-b px-4 py-4">
-          <p className="truncate text-sm font-semibold">{tenant.name}</p>
-        </div>
-        <AppSidebarNav className="flex-1 px-2 py-4" />
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b px-4">
-          <div className="flex items-center gap-2 md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Abrir menu">
-                  <Menu className="size-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64">
-                <SheetTitle className="px-4 pt-4">{tenant.name}</SheetTitle>
-                <AppSidebarNav className="px-2 py-4" />
-              </SheetContent>
-            </Sheet>
+    <TooltipProvider>
+      <div className="flex min-h-screen">
+        <Suspense fallback={null}>
+          <FunnelBeacon justConverted={justConverted} />
+        </Suspense>
+        <aside className="hidden w-56 shrink-0 border-r bg-sidebar text-sidebar-foreground md:flex md:flex-col">
+          <div className="border-b px-4 py-4">
             <p className="truncate text-sm font-semibold">{tenant.name}</p>
           </div>
+          <AppSidebarNav className="flex-1 px-2 py-4" />
+        </aside>
 
-          <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle />
-            <UserMenu
-              name={profile.full_name ?? ""}
-              email={profile.email}
-              isPlatformAdmin={!!isPlatformAdmin}
-            />
-          </div>
-        </header>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-14 items-center justify-between border-b px-4">
+            <div className="flex items-center gap-2 md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Abrir menu">
+                    <Menu className="size-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-64">
+                  <SheetTitle className="px-4 pt-4">{tenant.name}</SheetTitle>
+                  <AppSidebarNav className="px-2 py-4" />
+                </SheetContent>
+              </Sheet>
+              <p className="truncate text-sm font-semibold">{tenant.name}</p>
+            </div>
 
-        <main className="flex-1 overflow-x-hidden p-4 md:p-6">
-          {tenant.pending_deletion_at ? (
-            <AccountDeletionLockedScreen deletionDate={tenant.pending_deletion_at} />
-          ) : locked ? (
-            <SubscriptionLockedScreen
-              isOwner={profile.role === "owner"}
-              trialExpired={subscription?.status === "trialing"}
-            />
-          ) : (
-            children
-          )}
-        </main>
+            <div className="ml-auto flex items-center gap-2">
+              <ThemeToggle />
+              <UserMenu
+                name={profile.full_name ?? ""}
+                email={profile.email}
+                isPlatformAdmin={!!isPlatformAdmin}
+              />
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-x-hidden p-4 md:p-6">
+            {tenant.pending_deletion_at ? (
+              <AccountDeletionLockedScreen deletionDate={tenant.pending_deletion_at} />
+            ) : locked ? (
+              <SubscriptionLockedScreen
+                isOwner={profile.role === "owner"}
+                trialExpired={subscription?.status === "trialing"}
+              />
+            ) : (
+              children
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

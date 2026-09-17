@@ -15,6 +15,7 @@ const saveSchema = z.object({
   dependents_count: z.number().int().nonnegative(),
   family_monthly_income: z.number().nonnegative(),
   dependency_years: z.number().int().min(1).max(60),
+  existing_insurance: z.number().nonnegative(),
   notes: z.string().trim().nullable(),
 });
 
@@ -39,6 +40,7 @@ export async function saveProtecaoInssSimulacao(input: SaveInssGapInput): Promis
     dependentsCount: parsed.data.dependents_count,
     familyMonthlyIncome: parsed.data.family_monthly_income,
     dependencyYears: parsed.data.dependency_years,
+    existingInsurance: parsed.data.existing_insurance,
   });
 
   const row = {
@@ -49,6 +51,7 @@ export async function saveProtecaoInssSimulacao(input: SaveInssGapInput): Promis
     dependents_count: parsed.data.dependents_count,
     family_monthly_income: parsed.data.family_monthly_income,
     dependency_years: parsed.data.dependency_years,
+    existing_insurance: parsed.data.existing_insurance,
     notes: parsed.data.notes,
     result,
   };

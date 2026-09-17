@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { InfoTooltip } from "@/components/info-tooltip";
+import { PrefillNote } from "@/components/prefill-note";
 import { calculateSuccessionCosts, formatCurrency } from "@/lib/sucessao/calculator";
 import { AssetType, MARITAL_REGIME_LABELS, type Asset, type MaritalRegime } from "@/lib/sucessao/types";
 import { saveSucessaoSimulacao, createProspectFromSimulacao, deleteSucessaoSimulacao } from "./actions";
@@ -18,6 +20,7 @@ import { ExportSucessaoPdfButton } from "./export-sucessao-pdf-button";
 import { ImportAssetsButton } from "./import-assets-button";
 import { SucessaoCharts } from "./sucessao-charts";
 import type { SucessaoSimulacao } from "@/lib/types";
+import type { ClientFinancialProfile } from "@/lib/data/client-financial-profile";
 
 function newAsset(): Asset {
   return { id: Math.random().toString(36).slice(2, 10), description: "", type: AssetType.REAL_ESTATE, value: 0 };
@@ -28,18 +31,22 @@ export function SimuladorForm({
   clientId,
   clientName,
   advisorName,
+  prefill,
 }: {
   simulacao?: SucessaoSimulacao;
   clientId?: string | null;
   clientName?: string | null;
   advisorName: string;
+  prefill?: ClientFinancialProfile;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const [assets, setAssets] = useState<Asset[]>(simulacao?.assets?.length ? simulacao.assets : [newAsset()]);
   const [maritalRegime, setMaritalRegime] = useState<MaritalRegime>(simulacao?.marital_regime ?? "solteiro");
-  const [existingProtection, setExistingProtection] = useState(simulacao?.existing_protection ?? 0);
+  const [existingProtection, setExistingProtection] = useState(
+    simulacao?.existing_protection ?? prefill?.existingInsurance?.value ?? 0
+  );
   const [monthlyMaintenance, setMonthlyMaintenance] = useState(simulacao?.monthly_maintenance ?? 0);
   const [customDuration, setCustomDuration] = useState(simulacao?.custom_duration_months ?? 36);
   const [scenario, setScenario] = useState<"min" | "max">(simulacao?.scenario ?? "max");
@@ -160,7 +167,14 @@ export function SimuladorForm({
               />
             </div>
             <div className="space-y-2">
-              <Label>Estado civil / regime de bens</Label>
+              <Label className="flex items-center gap-1.5">
+                Estado civil / regime de bens
+                <InfoTooltip>
+                  Casado(a) em comunhão parcial ou universal: metade do patrimônio comum já é do cônjuge sobrevivente
+                  (meação) e não entra na base de cálculo do ITCMD — só a parte do falecido é tributada. Separação
+                  total não reduz a base.
+                </InfoTooltip>
+              </Label>
               <Select value={maritalRegime} onValueChange={(v) => setMaritalRegime(v as MaritalRegime)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -237,7 +251,13 @@ export function SimuladorForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="existing_protection">Seguro de vida / PGBL / VGBL já contratados (R$)</Label>
+              <Label htmlFor="existing_protection" className="flex items-center gap-1.5">
+                Seguro de vida / PGBL / VGBL já contratados (R$)
+                <InfoTooltip>
+                  Nenhum dos dois entra em inventário nem paga ITCMD (Art. 794 do CC e LC 227/2026 para PGBL/VGBL) —
+                  esse valor é descontado da meta de liquidez, pra não sugerir cobertura duplicada.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="existing_protection"
                 type="number"
@@ -246,9 +266,16 @@ export function SimuladorForm({
                 onChange={(e) => setExistingProtection(Number(e.target.value) || 0)}
                 placeholder="0"
               />
+              {!simulacao && prefill?.existingInsurance && <PrefillNote field={prefill.existingInsurance} />}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="monthly_maintenance">Custo mensal de manutenção do patrimônio (R$)</Label>
+              <Label htmlFor="monthly_maintenance" className="flex items-center gap-1.5">
+                Custo mensal de manutenção do patrimônio (R$)
+                <InfoTooltip>
+                  IPTU, condomínio, sustento da família etc. — continua vencendo enquanto os bens ficam bloqueados
+                  pelo inventário, então entra na meta de liquidez multiplicado pelo prazo de bloqueio abaixo.
+                </InfoTooltip>
+              </Label>
               <Input
                 id="monthly_maintenance"
                 type="number"
@@ -313,8 +340,12 @@ export function SimuladorForm({
           <Card>
             <CardContent className="space-y-4 pt-6">
               <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="duration" className="shrink-0">
+                <Label htmlFor="duration" className="flex shrink-0 items-center gap-1.5">
                   Prazo estimado de bloqueio dos bens
+                  <InfoTooltip>
+                    Tempo até o inventário terminar e os herdeiros poderem dispor dos bens livremente — padrão de 6
+                    meses no cenário amigável e 36 no litigioso, ajustável conforme o caso.
+                  </InfoTooltip>
                 </Label>
                 <span className="text-sm font-semibold">{customDuration} meses</span>
               </div>
