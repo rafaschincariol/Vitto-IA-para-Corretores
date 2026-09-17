@@ -3,12 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, FileText, FolderOpen, Kanban, ShieldCheck, ShieldAlert, Sparkles, Settings, CreditCard } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  FolderOpen,
+  Kanban,
+  ShieldCheck,
+  ShieldAlert,
+  LineChart,
+  Sparkles,
+  Settings,
+  CreditCard,
+} from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/assistant", label: "Assistente IA", icon: Sparkles, highlight: true },
   { href: "/pipeline", label: "Funil de Vendas", icon: Kanban },
+  { href: "/vida", label: "Necessidade de Seguro de Vida", icon: LineChart },
   { href: "/sucessao", label: "Simulador de Sucessão", icon: ShieldCheck },
   { href: "/protecao-inss", label: "Gap de Proteção (INSS)", icon: ShieldAlert },
   { href: "/clients", label: "Clientes", icon: Users },

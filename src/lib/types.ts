@@ -191,6 +191,28 @@ export type ProtecaoInssSimulacao = {
   updated_at: string;
 };
 
+export type VidaSimulacao = {
+  id: string;
+  tenant_id: string;
+  client_id: string | null;
+  client_name: string;
+  monthly_income: number;
+  dependency_years: number;
+  debts: import("./vida/types").Debt[];
+  children: import("./vida/types").Child[];
+  current_investments: number;
+  monthly_contribution: number;
+  existing_insurance: number;
+  real_return_rate: number;
+  final_costs: number;
+  notes: string | null;
+  result: import("./vida/types").VidaResult;
+  assigned_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",

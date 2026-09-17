@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ShieldCheck, ShieldAlert, LineChart } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/vida/nova?client_id=${client.id}`}>
+                <LineChart className="size-4" />
+                Simular necessidade de seguro de vida
+              </Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link href={`/sucessao/nova?client_id=${client.id}`}>
                 <ShieldCheck className="size-4" />
