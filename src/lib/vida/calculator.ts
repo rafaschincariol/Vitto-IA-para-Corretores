@@ -13,15 +13,46 @@ function remainingCollegeCost(child: Child, yearsFromNow: number): number {
   return child.collegeAnnualCost * remainingYears;
 }
 
-// Saldo devedor projetado de uma dívida daqui a `yearsFromNow` anos, assumindo
-// amortização linear até a quitação em `payoffYears` — simplificação
-// deliberada (não é uma tabela Price/SAC exata, mas captura a queda da
-// necessidade de proteção conforme a dívida é paga, que é o que importa pra
-// Linha da Vida).
+// Saldo devedor projetado de uma dívida daqui a `yearsFromNow` anos.
+//
+// Sem taxa de juros informada (ou tipo "linear"): amortização linear — a
+// mesma simplificação de sempre, usada porque a maioria dos clientes não
+// sabe de cabeça a taxa exata do contrato.
+//
+// Com taxa informada, dois sistemas reais de amortização brasileiros:
+// - SAC: amortização mensal fixa (financiado/meses), saldo cai mais rápido
+//   nos primeiros anos.
+// - Price (tabela Price): parcela mensal fixa, amortização crescente — o
+//   saldo cai mais devagar no início (os primeiros pagamentos são quase só
+//   juros), fórmula fechada do valor presente das parcelas restantes.
+// Isso muda a forma da Linha da Vida nos primeiros anos: uma dívida Price
+// deixa a família mais desprotegida do que a linha linear sugere, e uma SAC
+// menos.
 function remainingDebtBalance(debt: Debt, yearsFromNow: number): number {
   if (debt.payoffYears <= 0) return 0;
-  const fractionPaid = Math.min(1, yearsFromNow / debt.payoffYears);
-  return debt.balance * (1 - fractionPaid);
+  if (yearsFromNow >= debt.payoffYears) return 0;
+
+  const rate = debt.annualInterestRate ?? 0;
+  if (rate <= 0 || !debt.amortizationType || debt.amortizationType === "linear") {
+    const fractionPaid = Math.min(1, yearsFromNow / debt.payoffYears);
+    return debt.balance * (1 - fractionPaid);
+  }
+
+  const monthlyRate = rate / 100 / 12;
+  const numMonths = Math.round(debt.payoffYears * 12);
+  const monthsElapsed = Math.round(yearsFromNow * 12);
+
+  if (debt.amortizationType === "sac") {
+    const fixedAmortization = debt.balance / numMonths;
+    return Math.max(0, debt.balance - fixedAmortization * monthsElapsed);
+  }
+
+  // Price: PMT fixo, saldo remanescente = valor presente das parcelas que faltam.
+  const remainingMonths = numMonths - monthsElapsed;
+  const pmt =
+    (debt.balance * monthlyRate * Math.pow(1 + monthlyRate, numMonths)) /
+    (Math.pow(1 + monthlyRate, numMonths) - 1);
+  return Math.max(0, (pmt * (1 - Math.pow(1 + monthlyRate, -remainingMonths))) / monthlyRate);
 }
 
 export function calculateVidaNeed(input: VidaInput): VidaResult {

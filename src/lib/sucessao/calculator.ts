@@ -1,22 +1,25 @@
-import { AssetType, type SimulationInput, type SimulationResult } from "./types";
+import { AssetType, type ItcmdBracketBreakdown, type SimulationInput, type SimulationResult } from "./types";
 import { ITCMD_PROGRESSIVE_BRACKETS, TAX_RATES, MAINTENANCE_MONTHS, MARITAL_REGIME_TAXABLE_FRACTION } from "./constants";
 
-function calculateProgressiveITCMD(taxableBase: number): number {
+function calculateProgressiveITCMD(taxableBase: number): { tax: number; brackets: ItcmdBracketBreakdown[] } {
   let tax = 0;
   let remaining = taxableBase;
   let previousLimit = 0;
+  const brackets: ItcmdBracketBreakdown[] = [];
 
   for (const bracket of ITCMD_PROGRESSIVE_BRACKETS) {
     const rangeSize = bracket.limit - previousLimit;
     const amountInBracket = Math.min(remaining, rangeSize);
     if (amountInBracket <= 0) break;
 
-    tax += amountInBracket * bracket.rate;
+    const taxInBracket = amountInBracket * bracket.rate;
+    tax += taxInBracket;
+    brackets.push({ limit: bracket.limit, rate: bracket.rate, amountInBracket, taxInBracket });
     remaining -= amountInBracket;
     previousLimit = bracket.limit;
   }
 
-  return tax;
+  return { tax, brackets };
 }
 
 // Função pura — sem I/O, sem DOM. Porta a lógica do protótipo do usuário
@@ -30,7 +33,7 @@ export function calculateSuccessionCosts(input: SimulationInput): SimulationResu
   const taxableBase = totalAssets * MARITAL_REGIME_TAXABLE_FRACTION[input.maritalRegime];
   const realEstateCount = input.assets.filter((a) => a.type === AssetType.REAL_ESTATE).length;
 
-  const itcmdValue = calculateProgressiveITCMD(taxableBase);
+  const { tax: itcmdValue, brackets: itcmdBrackets } = calculateProgressiveITCMD(taxableBase);
 
   const costs: SimulationResult["costs"] = {
     itcmd: {
@@ -93,6 +96,7 @@ export function calculateSuccessionCosts(input: SimulationInput): SimulationResu
   return {
     totalAssets,
     taxableBase,
+    itcmdBrackets,
     costs,
     maintenance,
     totals: { min: totalMin, max: totalMax },

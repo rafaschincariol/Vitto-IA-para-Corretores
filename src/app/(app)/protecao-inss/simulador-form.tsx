@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { PrefillNote } from "@/components/prefill-note";
+import { InssBreakdown } from "./inss-breakdown";
 import { calculateInssGap, formatCurrency } from "@/lib/protecao-inss/calculator";
 import { DEFAULT_DEPENDENCY_YEARS, INSS_CEILING_2026 } from "@/lib/protecao-inss/constants";
 import {
@@ -225,6 +226,13 @@ export function SimuladorForm({
               </p>
             </CardContent>
           </Card>
+
+          <InssBreakdown
+            result={result}
+            contributionSalary={contributionSalary}
+            dependentsCount={dependentsCount}
+            familyMonthlyIncome={familyMonthlyIncome}
+          />
 
           <Card>
             <CardContent className="space-y-4 pt-6">
