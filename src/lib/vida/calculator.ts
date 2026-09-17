@@ -1,4 +1,5 @@
 import { COLLEGE_START_AGE, COLLEGE_DURATION_YEARS } from "./constants";
+import { remainingBalance as remainingAmortizedBalance } from "@/lib/finance/amortization";
 import type { Child, Debt, VidaInput, VidaResult, VidaYearPoint } from "./types";
 
 // Custo de faculdade ainda não pago pra um filho, daqui a `yearsFromNow` anos
@@ -38,21 +39,7 @@ function remainingDebtBalance(debt: Debt, yearsFromNow: number): number {
     return debt.balance * (1 - fractionPaid);
   }
 
-  const monthlyRate = rate / 100 / 12;
-  const numMonths = Math.round(debt.payoffYears * 12);
-  const monthsElapsed = Math.round(yearsFromNow * 12);
-
-  if (debt.amortizationType === "sac") {
-    const fixedAmortization = debt.balance / numMonths;
-    return Math.max(0, debt.balance - fixedAmortization * monthsElapsed);
-  }
-
-  // Price: PMT fixo, saldo remanescente = valor presente das parcelas que faltam.
-  const remainingMonths = numMonths - monthsElapsed;
-  const pmt =
-    (debt.balance * monthlyRate * Math.pow(1 + monthlyRate, numMonths)) /
-    (Math.pow(1 + monthlyRate, numMonths) - 1);
-  return Math.max(0, (pmt * (1 - Math.pow(1 + monthlyRate, -remainingMonths))) / monthlyRate);
+  return remainingAmortizedBalance(debt.balance, rate, debt.payoffYears, debt.amortizationType, yearsFromNow);
 }
 
 export function calculateVidaNeed(input: VidaInput): VidaResult {

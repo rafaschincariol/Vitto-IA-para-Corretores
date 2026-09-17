@@ -1,15 +1,23 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, ShieldAlert, LineChart } from "lucide-react";
+import { ArrowLeft, ShieldCheck, ShieldAlert, LineChart, Home, ChevronDown, Calculator } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ClientFormDialog } from "../client-form-dialog";
 import { PolicyFormDialog } from "../../policies/policy-form-dialog";
 import { PoliciesTable } from "../../policies/policies-table";
 import { DocumentDropzone } from "../../documents/document-dropzone";
 import { DocumentsTable } from "../../documents/documents-table";
 import type { Client, Document, Profile, PolicyWithClient } from "@/lib/types";
+
+const SIMULATOR_LINKS = [
+  { href: "vida/nova", label: "Necessidade de seguro de vida", icon: LineChart },
+  { href: "sucessao/nova", label: "Sucessão patrimonial", icon: ShieldCheck },
+  { href: "protecao-inss/nova", label: "Gap de proteção (INSS)", icon: ShieldAlert },
+  { href: "prestamista/nova", label: "Seguro prestamista", icon: Home },
+];
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -63,24 +71,25 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" asChild>
-              <Link href={`/vida/nova?client_id=${client.id}`}>
-                <LineChart className="size-4" />
-                Simular necessidade de seguro de vida
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={`/sucessao/nova?client_id=${client.id}`}>
-                <ShieldCheck className="size-4" />
-                Simular sucessão
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={`/protecao-inss/nova?client_id=${client.id}`}>
-                <ShieldAlert className="size-4" />
-                Simular gap de proteção
-              </Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Calculator className="size-4" />
+                  Simular
+                  <ChevronDown className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {SIMULATOR_LINKS.map(({ href, label, icon: Icon }) => (
+                  <DropdownMenuItem key={href} asChild>
+                    <Link href={`/${href}?client_id=${client.id}`}>
+                      <Icon className="size-4" />
+                      {label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ClientFormDialog client={client} isOwner={isOwner} teamMembers={teamMembers ?? []} />
           </div>
         </div>
