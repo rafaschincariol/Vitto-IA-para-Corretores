@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Building2,
   Kanban,
+  Calculator,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { HeroMockup } from "@/components/marketing/hero-mockup";
 import { PipelineMockup } from "@/components/marketing/pipeline-mockup";
+import { SimulatorsMenuMockup } from "@/components/marketing/simulators-menu-mockup";
+import { SimulatorResultMockup } from "@/components/marketing/simulator-result-mockup";
 import { BrowserFrame } from "@/components/marketing/browser-frame";
 import { LegalFooter } from "@/components/marketing/legal-footer";
 import { siteConfig } from "@/lib/site-config";
@@ -47,6 +50,13 @@ const FEATURES: {
     description:
       "Cadastre prospects, mude de etapa arrastando o card e acompanhe taxa de conversão e valor em negociação. A IA aponta gargalos e sugere o próximo passo.",
     visual: <PipelineMockup />,
+  },
+  {
+    icon: Calculator,
+    title: "Simuladores financeiros com o cliente",
+    description:
+      "Rode o simulador de sucessão patrimonial ou de proteção previdenciária (INSS) ao vivo com o cliente. Em vez de perguntar 'quanto de seguro você quer', o Vitto calcula um número a partir da vida real dele — e vira oportunidade no funil com um clique.",
+    visual: <SimulatorsMenuMockup />,
   },
   {
     icon: CalendarClock,
@@ -98,6 +108,7 @@ const PRICING_ITEMS = [
   "Equipe sem limite de usuários",
   "Cadastro automático de apólices por IA",
   "Funil de vendas com etapas editáveis e IA incluso",
+  "Simuladores financeiros (sucessão, proteção previdenciária) incluso",
   "Assistente com IA incluso",
   "Cancele quando quiser, direto pelo painel",
 ];
@@ -122,6 +133,10 @@ const FAQ_ITEMS = [
   {
     q: "O Vitto tem funil de vendas pra prospects, ou só gerencia clientes que já fecharam?",
     a: "Tem os dois. Além da carteira de clientes com apólice ativa, o Vitto tem um funil de vendas pra você cadastrar prospects, mover entre etapas (que você mesmo define) e acompanhar taxa de conversão — com a IA apontando onde o funil está travando.",
+  },
+  {
+    q: "O Vitto só organiza minha carteira ou também ajuda a vender?",
+    a: "Ajuda a vender. Além de organizar apólice e cliente, o Vitto tem simuladores financeiros (sucessão patrimonial, proteção previdenciária/INSS) que você roda ao vivo com o cliente: eles calculam um valor de cobertura a partir da vida real dele e viram oportunidade no funil de vendas com um clique.",
   },
   {
     q: "E se eu tiver mais de um corretor na equipe?",
@@ -152,6 +167,7 @@ export default async function Home() {
       "Cadastro automático de apólices via PDF/foto",
       "Painel de vencimentos (30/60/90 dias)",
       "Funil de vendas com etapas editáveis e analytics de conversão",
+      "Simuladores financeiros (sucessão patrimonial, proteção previdenciária/INSS) com sugestão de cobertura direto no funil de vendas",
       "Equipe sem limite de usuários",
     ],
     offers: {
@@ -319,6 +335,22 @@ export default async function Home() {
                   condições gerais de seguros, sempre citando a fonte.
                 </p>
               </div>
+            </div>
+
+            <div className="mt-16 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+              <div>
+                <h3 className="font-heading text-2xl font-semibold tracking-tight text-balance">
+                  De &quot;quanto de seguro você quer&quot; pra um número calculado
+                </h3>
+                <p className="mt-3 text-muted-foreground">
+                  Simule a sucessão patrimonial ou o gap de proteção
+                  previdenciária direto com o cliente. Cada simulador calcula
+                  um valor de cobertura a partir dos dados reais dele, você
+                  ajusta as premissas ao vivo, e termina num botão só: criar a
+                  oportunidade no funil já com o valor sugerido.
+                </p>
+              </div>
+              <SimulatorResultMockup />
             </div>
           </div>
         </section>
