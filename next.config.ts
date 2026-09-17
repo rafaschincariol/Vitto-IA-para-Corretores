@@ -46,6 +46,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  experimental: {
+    // Server Action padrão aceita só 1MB — pequeno demais pro upload de PDF
+    // usado na análise automatizada de bens do simulador de sucessão
+    // (sucessao/actions.ts::extractAssetsFromDocument, capado em 8MB no
+    // cliente; a folga aqui cobre o overhead do multipart/form-data).
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 export default withSentryConfig(nextConfig, {
