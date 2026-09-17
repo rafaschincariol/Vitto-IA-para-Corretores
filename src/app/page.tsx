@@ -55,7 +55,7 @@ const FEATURES: {
     icon: Calculator,
     title: "Simuladores financeiros com o cliente",
     description:
-      "Rode o simulador de sucessão patrimonial ou de proteção previdenciária (INSS) ao vivo com o cliente. Em vez de perguntar 'quanto de seguro você quer', o Vitto calcula um número a partir da vida real dele — e vira oportunidade no funil com um clique.",
+      "Rode o simulador de sucessão patrimonial, de proteção previdenciária (INSS) ou de necessidade de seguro de vida ao vivo com o cliente. Em vez de perguntar 'quanto de seguro você quer', o Vitto calcula um número a partir da vida real dele — e vira oportunidade no funil com um clique.",
     visual: <SimulatorsMenuMockup />,
   },
   {
@@ -108,7 +108,7 @@ const PRICING_ITEMS = [
   "Equipe sem limite de usuários",
   "Cadastro automático de apólices por IA",
   "Funil de vendas com etapas editáveis e IA incluso",
-  "Simuladores financeiros (sucessão, proteção previdenciária) incluso",
+  "Simuladores financeiros (sucessão, proteção previdenciária, seguro de vida) incluso",
   "Assistente com IA incluso",
   "Cancele quando quiser, direto pelo painel",
 ];
@@ -136,7 +136,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "O Vitto só organiza minha carteira ou também ajuda a vender?",
-    a: "Ajuda a vender. Além de organizar apólice e cliente, o Vitto tem simuladores financeiros (sucessão patrimonial, proteção previdenciária/INSS) que você roda ao vivo com o cliente: eles calculam um valor de cobertura a partir da vida real dele e viram oportunidade no funil de vendas com um clique.",
+    a: "Ajuda a vender. Além de organizar apólice e cliente, o Vitto tem simuladores financeiros (sucessão patrimonial, proteção previdenciária/INSS, necessidade de seguro de vida) que você roda ao vivo com o cliente: eles calculam um valor de cobertura a partir da vida real dele e viram oportunidade no funil de vendas com um clique.",
   },
   {
     q: "E se eu tiver mais de um corretor na equipe?",
@@ -167,7 +167,7 @@ export default async function Home() {
       "Cadastro automático de apólices via PDF/foto",
       "Painel de vencimentos (30/60/90 dias)",
       "Funil de vendas com etapas editáveis e analytics de conversão",
-      "Simuladores financeiros (sucessão patrimonial, proteção previdenciária/INSS) com sugestão de cobertura direto no funil de vendas",
+      "Simuladores financeiros (sucessão patrimonial, proteção previdenciária/INSS, necessidade de seguro de vida) com sugestão de cobertura direto no funil de vendas",
       "Equipe sem limite de usuários",
     ],
     offers: {
@@ -343,11 +343,18 @@ export default async function Home() {
                   De &quot;quanto de seguro você quer&quot; pra um número calculado
                 </h3>
                 <p className="mt-3 text-muted-foreground">
-                  Simule a sucessão patrimonial ou o gap de proteção
-                  previdenciária direto com o cliente. Cada simulador calcula
-                  um valor de cobertura a partir dos dados reais dele, você
-                  ajusta as premissas ao vivo, e termina num botão só: criar a
-                  oportunidade no funil já com o valor sugerido.
+                  Simule a sucessão patrimonial, o gap de proteção
+                  previdenciária ou a necessidade de seguro de vida direto com
+                  o cliente. Cada simulador calcula um valor de cobertura a
+                  partir dos dados reais dele, você ajusta as premissas ao
+                  vivo, e termina num botão só: criar a oportunidade no funil
+                  já com o valor sugerido.
+                </p>
+                <p className="mt-3 text-muted-foreground">
+                  No simulador de vida, o Vitto ainda projeta a Linha da
+                  Vida: um gráfico mostrando a necessidade de proteção
+                  caindo — conforme dívidas são quitadas e os filhos crescem —
+                  enquanto o patrimônio do cliente cresce junto, ano a ano.
                 </p>
               </div>
               <SimulatorResultMockup />

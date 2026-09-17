@@ -7,6 +7,7 @@ import { Calculator } from "lucide-react";
 const SIMULATORS = [
   { name: "Sucessão patrimonial", output: "R$ 850 mil sugeridos" },
   { name: "Proteção previdenciária (INSS)", output: "R$ 610 mil sugeridos" },
+  { name: "Necessidade de seguro de vida", output: "R$ 980 mil sugeridos" },
 ];
 
 export function SimulatorsMenuMockup() {
