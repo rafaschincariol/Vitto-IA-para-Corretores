@@ -15,6 +15,7 @@ import { calculateSuccessionCosts, formatCurrency } from "@/lib/sucessao/calcula
 import { AssetType, MARITAL_REGIME_LABELS, type Asset, type MaritalRegime } from "@/lib/sucessao/types";
 import { saveSucessaoSimulacao, createProspectFromSimulacao, deleteSucessaoSimulacao } from "./actions";
 import { ExportSucessaoPdfButton } from "./export-sucessao-pdf-button";
+import { ImportAssetsButton } from "./import-assets-button";
 import { SucessaoCharts } from "./sucessao-charts";
 import type { SucessaoSimulacao } from "@/lib/types";
 
@@ -66,6 +67,13 @@ export function SimuladorForm({
 
   function updateAsset(id: string, patch: Partial<Asset>) {
     setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+  }
+
+  function handleImportedAssets(imported: Asset[]) {
+    setAssets((prev) => {
+      const meaningful = prev.filter((a) => a.description.trim() || a.value > 0);
+      return [...meaningful, ...imported];
+    });
   }
 
   function handleSave() {
@@ -169,13 +177,20 @@ export function SimuladorForm({
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Label>Bens do patrimônio</Label>
-              <Button type="button" variant="outline" size="sm" onClick={() => setAssets((prev) => [...prev, newAsset()])}>
-                <Plus className="size-4" />
-                Adicionar bem
-              </Button>
+              <div className="flex gap-2">
+                <ImportAssetsButton onExtracted={handleImportedAssets} />
+                <Button type="button" variant="outline" size="sm" onClick={() => setAssets((prev) => [...prev, newAsset()])}>
+                  <Plus className="size-4" />
+                  Adicionar bem
+                </Button>
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Digite os bens manualmente ou importe de um PDF/foto — declaração de bens do IRPF, relação de bens,
+              auto de inventário. A IA lê o documento e preenche a lista abaixo; confira os valores antes de salvar.
+            </p>
             <div className="space-y-2">
               {assets.map((asset) => (
                 <div key={asset.id} className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">

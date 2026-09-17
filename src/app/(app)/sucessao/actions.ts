@@ -7,6 +7,7 @@ import { requireProfile } from "@/lib/data/auth";
 import { getSucessaoSimulacao } from "@/lib/data/sucessao";
 import { calculateSuccessionCosts, formatCurrency } from "@/lib/sucessao/calculator";
 import { AssetType, type Asset, type MaritalRegime } from "@/lib/sucessao/types";
+import { extractSucessaoAssets } from "@/lib/ai/extract-sucessao-assets";
 
 const assetSchema = z.object({
   id: z.string(),
@@ -136,4 +137,43 @@ export async function createProspectFromSimulacao(simulacaoId: string): Promise<
 
   revalidatePath("/pipeline");
   return { error: null };
+}
+
+const EXTRACT_ALLOWED_MIME_TYPES = ["application/pdf", "image/png", "image/jpeg"];
+const EXTRACT_MAX_BYTES = 8 * 1024 * 1024; // 8MB — cabe dentro do bodySizeLimit do next.config.ts
+
+export type ExtractAssetsState = { assets: Asset[] | null; error: string | null };
+
+// Análise automatizada de um documento patrimonial (declaração de bens do
+// IRPF, relação de bens, auto de inventário) pra pré-preencher a lista de
+// bens do simulador. Não persiste o documento em lugar nenhum — é só um
+// atalho de digitação; o corretor sempre revisa os valores antes de salvar.
+export async function extractAssetsFromDocument(formData: FormData): Promise<ExtractAssetsState> {
+  await requireProfile();
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) return { assets: null, error: "Nenhum arquivo enviado." };
+  if (!EXTRACT_ALLOWED_MIME_TYPES.includes(file.type)) {
+    return { assets: null, error: "Formato não suportado (use PDF, PNG ou JPEG)." };
+  }
+  if (file.size > EXTRACT_MAX_BYTES) {
+    return { assets: null, error: "Arquivo maior que 8MB." };
+  }
+
+  try {
+    const bytes = await file.arrayBuffer();
+    const extracted = await extractSucessaoAssets(bytes, file.type);
+    if (extracted.length === 0) {
+      return { assets: null, error: "Não encontrei bens com valores claros nesse documento." };
+    }
+    const assets: Asset[] = extracted.map((a) => ({
+      id: Math.random().toString(36).slice(2, 10),
+      description: a.description,
+      type: a.type,
+      value: a.value,
+    }));
+    return { assets, error: null };
+  } catch {
+    return { assets: null, error: "Não foi possível analisar o documento com a IA." };
+  }
 }
