@@ -174,6 +174,23 @@ export type SucessaoSimulacao = {
   updated_at: string;
 };
 
+export type ProtecaoInssSimulacao = {
+  id: string;
+  tenant_id: string;
+  client_id: string | null;
+  client_name: string;
+  contribution_salary: number;
+  dependents_count: number;
+  family_monthly_income: number;
+  dependency_years: number;
+  notes: string | null;
+  result: import("./protecao-inss/types").InssGapResult;
+  assigned_to: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",
