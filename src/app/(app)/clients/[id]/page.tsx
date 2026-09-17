@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, ShieldAlert } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/auth";
 import { Button } from "@/components/ui/button";
@@ -62,11 +62,17 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               {[client.cpf_cnpj, client.email, client.phone].filter(Boolean).join(" · ") || "Sem dados de contato"}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
               <Link href={`/sucessao/nova?client_id=${client.id}`}>
                 <ShieldCheck className="size-4" />
                 Simular sucessão
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={`/protecao-inss/nova?client_id=${client.id}`}>
+                <ShieldAlert className="size-4" />
+                Simular gap de proteção
               </Link>
             </Button>
             <ClientFormDialog client={client} isOwner={isOwner} teamMembers={teamMembers ?? []} />
