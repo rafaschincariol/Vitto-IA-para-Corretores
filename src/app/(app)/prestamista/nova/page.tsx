@@ -11,7 +11,7 @@ export default async function NovaPrestamistaPage({
 }: {
   searchParams: Promise<{ client_id?: string }>;
 }) {
-  await requireProfile();
+  const { profile } = await requireProfile();
   const { client_id } = await searchParams;
   const supabase = await createSupabaseClient();
 
@@ -33,7 +33,11 @@ export default async function NovaPrestamistaPage({
         <h1 className="text-2xl font-semibold tracking-tight">Nova simulação de seguro prestamista</h1>
       </div>
 
-      <SimuladorForm clientId={client?.id ?? null} clientName={client?.name ?? null} />
+      <SimuladorForm
+        clientId={client?.id ?? null}
+        clientName={client?.name ?? null}
+        advisorName={profile.full_name ?? profile.email}
+      />
     </div>
   );
 }

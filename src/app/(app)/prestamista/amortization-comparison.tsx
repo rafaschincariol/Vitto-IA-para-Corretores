@@ -1,3 +1,6 @@
+"use client";
+
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/prestamista/calculator";
@@ -22,6 +25,41 @@ export function AmortizationComparison({
         <CardDescription>Os dois sistemas, lado a lado, pro mesmo valor financiado e prazo.</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={[
+                { name: "1ª parcela", SAC: comparison.sac.firstInstallment, Price: comparison.price.firstInstallment },
+                { name: "Última parcela", SAC: comparison.sac.lastInstallment, Price: comparison.price.lastInstallment },
+                { name: "Total de juros", SAC: comparison.sac.totalInterest, Price: comparison.price.totalInterest },
+              ]}
+              margin={{ left: 8, right: 8 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+              <XAxis dataKey="name" tickLine={false} axisLine={false} className="text-xs" />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                className="text-xs"
+                width={56}
+                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              />
+              <Tooltip
+                cursor={{ fill: "var(--muted)" }}
+                formatter={(value) => formatCurrency(Number(value))}
+                contentStyle={{
+                  backgroundColor: "var(--popover)",
+                  borderColor: "var(--border)",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: 12,
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="SAC" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Price" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SimuladorForm } from "../simulador-form";
 
 export default async function ProtecaoInssDetalhePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireProfile();
+  const { profile } = await requireProfile();
   const { id } = await params;
   const supabase = await createSupabaseClient();
 
@@ -27,7 +27,12 @@ export default async function ProtecaoInssDetalhePage({ params }: { params: Prom
         <h1 className="text-2xl font-semibold tracking-tight">{simulacao.client_name}</h1>
       </div>
 
-      <SimuladorForm simulacao={simulacao} clientId={simulacao.client_id} clientName={simulacao.client_name} />
+      <SimuladorForm
+        simulacao={simulacao}
+        clientId={simulacao.client_id}
+        clientName={simulacao.client_name}
+        advisorName={profile.full_name ?? profile.email}
+      />
     </div>
   );
 }

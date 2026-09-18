@@ -24,6 +24,7 @@ const AMORTIZATION_LABELS: Record<AmortizationType, string> = {
 };
 import { saveVidaSimulacao, createProspectFromVidaSimulacao, deleteVidaSimulacao } from "./actions";
 import { VidaCharts } from "./vida-charts";
+import { ExportVidaPdfButton } from "./export-vida-pdf-button";
 import type { VidaSimulacao } from "@/lib/types";
 import type { ClientFinancialProfile } from "@/lib/data/client-financial-profile";
 
@@ -40,11 +41,13 @@ export function SimuladorForm({
   clientId,
   clientName,
   prefill,
+  advisorName,
 }: {
   simulacao?: VidaSimulacao;
   clientId?: string | null;
   clientName?: string | null;
   prefill?: ClientFinancialProfile;
+  advisorName: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -481,6 +484,9 @@ export function SimuladorForm({
                 <Button type="button" variant="outline" onClick={handleSave} disabled={pending}>
                   {pending ? "Salvando..." : simulacao ? "Salvar alterações" : "Salvar simulação"}
                 </Button>
+                {simulacao && (
+                  <ExportVidaPdfButton simulacao={{ ...simulacao, client_name: name }} advisorName={advisorName} />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 Estimativa educativa — não substitui análise individual. A rentabilidade usada na projeção é uma

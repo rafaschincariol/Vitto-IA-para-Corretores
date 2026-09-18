@@ -22,6 +22,7 @@ import {
 } from "./actions";
 import { PrevidenciaCharts } from "./previdencia-charts";
 import { ComparisonTable } from "./comparison-table";
+import { ExportPrevidenciaPdfButton } from "./export-previdencia-pdf-button";
 import type { PrevidenciaSimulacao } from "@/lib/types";
 import type { ClientFinancialProfile } from "@/lib/data/client-financial-profile";
 
@@ -33,11 +34,13 @@ export function SimuladorForm({
   clientId,
   clientName,
   prefill,
+  advisorName,
 }: {
   simulacao?: PrevidenciaSimulacao;
   clientId?: string | null;
   clientName?: string | null;
   prefill?: ClientFinancialProfile;
+  advisorName: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -338,6 +341,12 @@ export function SimuladorForm({
                 <Button type="button" variant="outline" onClick={handleSave} disabled={pending}>
                   {pending ? "Salvando..." : simulacao ? "Salvar alterações" : "Salvar simulação"}
                 </Button>
+                {simulacao && (
+                  <ExportPrevidenciaPdfButton
+                    simulacao={{ ...simulacao, client_name: name }}
+                    advisorName={advisorName}
+                  />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 Estimativa educativa a partir da rentabilidade e das tabelas de IR informadas — não substitui o
