@@ -8,7 +8,7 @@ import { SimuladorForm } from "../simulador-form";
 import type { Client } from "@/lib/types";
 
 export default async function NovaVidaPage({ searchParams }: { searchParams: Promise<{ client_id?: string }> }) {
-  await requireProfile();
+  const { profile } = await requireProfile();
   const { client_id } = await searchParams;
   const supabase = await createSupabaseClient();
 
@@ -32,7 +32,12 @@ export default async function NovaVidaPage({ searchParams }: { searchParams: Pro
         <h1 className="text-2xl font-semibold tracking-tight">Nova simulação de necessidade de seguro de vida</h1>
       </div>
 
-      <SimuladorForm clientId={client?.id ?? null} clientName={client?.name ?? null} prefill={prefill} />
+      <SimuladorForm
+        clientId={client?.id ?? null}
+        clientName={client?.name ?? null}
+        prefill={prefill}
+        advisorName={profile.full_name ?? profile.email}
+      />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export default async function NovaPrevidenciaPage({
 }: {
   searchParams: Promise<{ client_id?: string }>;
 }) {
-  await requireProfile();
+  const { profile } = await requireProfile();
   const { client_id } = await searchParams;
   const supabase = await createSupabaseClient();
 
@@ -36,7 +36,12 @@ export default async function NovaPrevidenciaPage({
         <h1 className="text-2xl font-semibold tracking-tight">Nova simulação de previdência privada</h1>
       </div>
 
-      <SimuladorForm clientId={client?.id ?? null} clientName={client?.name ?? null} prefill={prefill} />
+      <SimuladorForm
+        clientId={client?.id ?? null}
+        clientName={client?.name ?? null}
+        prefill={prefill}
+        advisorName={profile.full_name ?? profile.email}
+      />
     </div>
   );
 }

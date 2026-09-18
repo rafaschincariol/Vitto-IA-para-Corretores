@@ -17,6 +17,7 @@ import type { AmortizationSystem } from "@/lib/prestamista/types";
 import { savePrestamistaSimulacao, createProspectFromPrestamistaSimulacao, deletePrestamistaSimulacao } from "./actions";
 import { PrestamistaCharts } from "./prestamista-charts";
 import { AmortizationComparison } from "./amortization-comparison";
+import { ExportPrestamistaPdfButton } from "./export-prestamista-pdf-button";
 import type { PrestamistaSimulacao } from "@/lib/types";
 
 const AMORTIZATION_LABELS: Record<AmortizationSystem, string> = {
@@ -28,10 +29,12 @@ export function SimuladorForm({
   simulacao,
   clientId,
   clientName,
+  advisorName,
 }: {
   simulacao?: PrestamistaSimulacao;
   clientId?: string | null;
   clientName?: string | null;
+  advisorName: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -241,6 +244,12 @@ export function SimuladorForm({
                 <Button type="button" variant="outline" onClick={handleSave} disabled={pending}>
                   {pending ? "Salvando..." : simulacao ? "Salvar alterações" : "Salvar simulação"}
                 </Button>
+                {simulacao && (
+                  <ExportPrestamistaPdfButton
+                    simulacao={{ ...simulacao, client_name: name }}
+                    advisorName={advisorName}
+                  />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 Estimativa educativa a partir da taxa e do sistema informados — não substitui o extrato oficial do

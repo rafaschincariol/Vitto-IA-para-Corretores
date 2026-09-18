@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { PrefillNote } from "@/components/prefill-note";
 import { InssBreakdown } from "./inss-breakdown";
+import { InssCharts } from "./inss-charts";
+import { ExportInssPdfButton } from "./export-inss-pdf-button";
 import { calculateInssGap, formatCurrency } from "@/lib/protecao-inss/calculator";
 import { DEFAULT_DEPENDENCY_YEARS, INSS_CEILING_2026 } from "@/lib/protecao-inss/constants";
 import {
@@ -28,11 +30,13 @@ export function SimuladorForm({
   clientId,
   clientName,
   prefill,
+  advisorName,
 }: {
   simulacao?: ProtecaoInssSimulacao;
   clientId?: string | null;
   clientName?: string | null;
   prefill?: ClientFinancialProfile;
+  advisorName: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -227,6 +231,8 @@ export function SimuladorForm({
             </CardContent>
           </Card>
 
+          <InssCharts result={result} familyMonthlyIncome={familyMonthlyIncome} />
+
           <InssBreakdown
             result={result}
             contributionSalary={contributionSalary}
@@ -284,6 +290,9 @@ export function SimuladorForm({
                 <Button type="button" variant="outline" onClick={handleSave} disabled={pending}>
                   {pending ? "Salvando..." : simulacao ? "Salvar alterações" : "Salvar simulação"}
                 </Button>
+                {simulacao && (
+                  <ExportInssPdfButton simulacao={{ ...simulacao, client_name: name }} advisorName={advisorName} />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 Estimativa educativa — não substitui análise individual previdenciária. A regra de pensão por morte e

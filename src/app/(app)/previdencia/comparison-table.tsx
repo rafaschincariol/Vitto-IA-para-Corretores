@@ -1,3 +1,6 @@
+"use client";
+
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/previdencia/calculator";
@@ -37,6 +40,43 @@ export function ComparisonTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={ROWS.map((row) => ({ name: row.label, liquido: comparison[row.key].netProceeds, key: row.key }))}
+              layout="vertical"
+              margin={{ left: 8, right: 24 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
+              <XAxis
+                type="number"
+                tickLine={false}
+                axisLine={false}
+                className="text-xs"
+                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              />
+              <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} className="text-xs" width={110} />
+              <Tooltip
+                cursor={{ fill: "var(--muted)" }}
+                formatter={(value) => formatCurrency(Number(value))}
+                contentStyle={{
+                  backgroundColor: "var(--popover)",
+                  borderColor: "var(--border)",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: 12,
+                }}
+              />
+              <Bar dataKey="liquido" radius={[0, 4, 4, 0]}>
+                {ROWS.map((row) => (
+                  <Cell
+                    key={row.key}
+                    fill={row.plan === selectedPlan && row.regime === selectedRegime ? "var(--primary)" : "var(--chart-3)"}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
