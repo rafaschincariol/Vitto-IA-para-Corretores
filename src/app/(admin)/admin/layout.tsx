@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen, Building2, ScrollText, ShieldCheck } from "lucide-react";
+import { BookOpen, Building2, ScrollText, ShieldCheck, Target } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Corretoras", icon: Building2 },
+  { href: "/admin/growth", label: "Aquisição de Leads", icon: Target },
   { href: "/admin/global-knowledge", label: "Base de Conhecimento", icon: BookOpen },
   { href: "/admin/logs", label: "Logs", icon: ScrollText },
 ];
