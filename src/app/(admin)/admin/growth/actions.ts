@@ -6,6 +6,9 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { cpfCnpjSchema, isValidBrazilianPhone } from "@/lib/validators";
 import { generateLeadQualificationAndDraft } from "@/lib/ai/growth-outreach";
 import { getGrowthLead } from "@/lib/data/growth";
+import { getResendClient } from "@/lib/growth/resend";
+import { normalizeToE164Br } from "@/lib/growth/whatsapp";
+import type { GrowthDraftChannel } from "@/lib/types";
 
 // Mesmo padrão de admin/tenants/actions.ts: confirma sessão + pertencimento
 // a platform_admins antes de qualquer mutação — RLS na tabela (0026) é a
@@ -29,11 +32,14 @@ async function requirePlatformAdminSession() {
 }
 
 // Rodapé de descadastro: sempre incluso, nunca deixado a critério da IA (ela
-// nem recebe instrução pra gerar isso — ver growth-outreach.ts). Envio real
-// (fase 4/Resend) ainda vai adicionar um link de opt-out de um clique aqui;
-// por enquanto o texto já deixa claro que basta responder pra ser removido.
-const UNSUBSCRIBE_FOOTER =
-  "\n\n—\nSe preferir não receber mais contato, é só responder este e-mail pedindo pra remover — atendemos na hora.";
+// nem recebe instrução pra gerar isso — ver growth-outreach.ts). Pro e-mail é
+// texto simples injetado no corpo; pro WhatsApp fica vazio porque o botão de
+// opt-out já vem embutido no template aprovado pela Meta — não dá pra
+// injetar texto dentro da variável de um template.
+const UNSUBSCRIBE_FOOTER: Record<GrowthDraftChannel, string> = {
+  email: "\n\n—\nSe preferir não receber mais contato, é só responder este e-mail pedindo pra remover — atendemos na hora.",
+  whatsapp: "",
+};
 
 const leadRowSchema = z
   .array(z.unknown())
@@ -146,19 +152,22 @@ export async function deleteLead(id: string): Promise<GrowthActionState> {
 export type GenerateDraftState = { error: string | null; draftId: string | null };
 
 // Chama a IA sob demanda (nunca automático) pra qualificar o lead e
-// rascunhar uma abordagem. Marca novo→qualificado só se ainda estava em
-// "novo" (não sobrescreve um estágio já avançado manualmente). O rascunho
-// entra sempre como pending_review — aprovar e enviar são passos manuais
-// separados (ver approveDraft e a fase 4/Resend, ainda não implementada).
-export async function generateDraftForLead(leadId: string): Promise<GenerateDraftState> {
+// rascunhar uma abordagem no canal escolhido. Marca novo→qualificado só se
+// ainda estava em "novo" (não sobrescreve um estágio já avançado
+// manualmente). O rascunho entra sempre como pending_review — aprovar e
+// enviar são passos manuais separados (ver approveDraft/sendApprovedDraft).
+export async function generateDraftForLead(leadId: string, channel: GrowthDraftChannel): Promise<GenerateDraftState> {
   const { supabase } = await requirePlatformAdminSession();
 
   const lead = await getGrowthLead(supabase, leadId);
   if (!lead) return { error: "Lead não encontrado.", draftId: null };
+  if (channel === "whatsapp" && !lead.phone) {
+    return { error: "Esse lead não tem telefone cadastrado — não dá pra gerar rascunho de WhatsApp.", draftId: null };
+  }
 
   let draft;
   try {
-    draft = await generateLeadQualificationAndDraft(lead);
+    draft = await generateLeadQualificationAndDraft(lead, channel);
   } catch {
     return { error: "Não foi possível gerar o rascunho com a IA.", draftId: null };
   }
@@ -176,8 +185,9 @@ export async function generateDraftForLead(leadId: string): Promise<GenerateDraf
     .from("growth_outreach_drafts")
     .insert({
       lead_id: leadId,
+      channel,
       subject: draft.subject,
-      body: draft.body + UNSUBSCRIBE_FOOTER,
+      body: draft.body + UNSUBSCRIBE_FOOTER[channel],
       status: "pending_review",
     })
     .select("id")
@@ -191,11 +201,19 @@ export async function generateDraftForLead(leadId: string): Promise<GenerateDraf
   return { error: null, draftId: inserted.id as string };
 }
 
-const updateDraftSchema = z.object({
-  id: z.string().uuid(),
-  subject: z.string().trim().min(1, "Informe o assunto."),
-  body: z.string().trim().min(1, "Informe o corpo do e-mail."),
-});
+const updateDraftSchema = z
+  .object({
+    id: z.string().uuid(),
+    channel: z.enum(["email", "whatsapp"]),
+    // Assunto é opcional no schema — só é exigido de fato pro canal e-mail,
+    // checado no .refine abaixo (WhatsApp não tem esse campo).
+    subject: z.string().trim().optional().or(z.literal("")).transform((v) => v || null),
+    body: z.string().trim().min(1, "Informe o corpo da mensagem."),
+  })
+  .refine((data) => data.channel !== "email" || !!data.subject, {
+    message: "Informe o assunto.",
+    path: ["subject"],
+  });
 
 export async function updateDraft(_prevState: GrowthActionState, formData: FormData): Promise<GrowthActionState> {
   const parsed = updateDraftSchema.safeParse(Object.fromEntries(formData));
@@ -239,6 +257,77 @@ export async function rejectDraft(id: string): Promise<GrowthActionState> {
     .eq("id", id)
     .eq("status", "pending_review");
   if (error) return { error: "Não foi possível rejeitar o rascunho." };
+
+  revalidatePath("/admin/growth/review");
+  return { error: null };
+}
+
+// Segundo passo explícito depois de "Aprovar" — só aqui o e-mail/WhatsApp
+// sai de verdade. Checa supressão por (canal, contato) antes de qualquer
+// chamada externa.
+export async function sendApprovedDraft(id: string): Promise<GrowthActionState> {
+  const { supabase } = await requirePlatformAdminSession();
+
+  const { data: draft } = await supabase
+    .from("growth_outreach_drafts")
+    .select("*, lead:growth_leads(id, contact_name, email, phone)")
+    .eq("id", id)
+    .eq("status", "approved")
+    .maybeSingle();
+  if (!draft) return { error: "Rascunho não encontrado ou não está aprovado." };
+
+  const lead = draft.lead as { email: string; phone: string | null };
+  const contact = draft.channel === "email" ? lead.email : normalizeToE164Br(lead.phone ?? "");
+  if (!contact) return { error: "Lead sem contato válido pra esse canal." };
+
+  const { data: suppressed } = await supabase
+    .from("growth_suppressions")
+    .select("contact")
+    .eq("channel", draft.channel)
+    .eq("contact", contact)
+    .maybeSingle();
+  if (suppressed) return { error: "Esse contato está na lista de supressão — envio bloqueado." };
+
+  let providerMessageId: string | null = null;
+
+  if (draft.channel === "email") {
+    const resend = getResendClient();
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL!,
+      to: contact,
+      subject: draft.subject ?? "Vitto",
+      text: draft.body,
+    });
+    if (error || !data) return { error: "Não foi possível enviar o e-mail." };
+    providerMessageId = data.id;
+  } else {
+    const res = await fetch(`https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: contact,
+        type: "template",
+        template: {
+          name: process.env.WHATSAPP_TEMPLATE_NAME || "growth_outreach_v1",
+          language: { code: "pt_BR" },
+          components: [{ type: "body", parameters: [{ type: "text", text: draft.body }] }],
+        },
+      }),
+    });
+    const json = (await res.json().catch(() => null)) as { messages?: { id: string }[] } | null;
+    if (!res.ok || !json?.messages?.[0]?.id) return { error: "Não foi possível enviar a mensagem de WhatsApp." };
+    providerMessageId = json.messages[0].id;
+  }
+
+  const { error: updateError } = await supabase
+    .from("growth_outreach_drafts")
+    .update({ status: "sent", sent_at: new Date().toISOString(), provider_message_id: providerMessageId })
+    .eq("id", id);
+  if (updateError) return { error: "Enviado, mas não foi possível atualizar o status do rascunho." };
 
   revalidatePath("/admin/growth/review");
   return { error: null };

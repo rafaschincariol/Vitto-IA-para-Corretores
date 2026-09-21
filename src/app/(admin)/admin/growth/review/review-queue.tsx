@@ -4,14 +4,16 @@ import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, X } from "lucide-react";
-import { updateDraft, approveDraft, rejectDraft, type GrowthActionState } from "../actions";
+import { Check, Send, X } from "lucide-react";
+import { updateDraft, approveDraft, rejectDraft, sendApprovedDraft, type GrowthActionState } from "../actions";
 import type { PendingDraftRow } from "@/lib/data/growth";
+import { GROWTH_CHANNEL_LABELS } from "@/lib/types";
 
 // Editável (assunto/corpo) até aprovar — depois disso o texto congela pra
 // refletir exatamente o que foi aprovado (fase 4/Resend envia esse texto).
@@ -35,22 +37,26 @@ function PendingDraftCard({ draft }: { draft: PendingDraftRow }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
+        <CardTitle className="text-base flex items-center gap-2">
           <Link href={`/admin/growth/${draft.lead.id}`} className="underline-offset-4 hover:underline">
             {draft.lead.contact_name}
           </Link>
+          <Badge variant="outline">{GROWTH_CHANNEL_LABELS[draft.channel]}</Badge>
         </CardTitle>
         <CardDescription>
-          {draft.lead.company_name ?? draft.lead.email} · {new Date(draft.created_at).toLocaleDateString("pt-BR")}
+          {draft.channel === "email" ? draft.lead.email : draft.lead.phone} · {new Date(draft.created_at).toLocaleDateString("pt-BR")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form action={formAction} className="space-y-3">
           <input type="hidden" name="id" value={draft.id} />
-          <div className="space-y-2">
-            <Label htmlFor={`subject-${draft.id}`}>Assunto</Label>
-            <Input id={`subject-${draft.id}`} name="subject" defaultValue={draft.subject} />
-          </div>
+          <input type="hidden" name="channel" value={draft.channel} />
+          {draft.channel === "email" && (
+            <div className="space-y-2">
+              <Label htmlFor={`subject-${draft.id}`}>Assunto</Label>
+              <Input id={`subject-${draft.id}`} name="subject" defaultValue={draft.subject ?? ""} />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor={`body-${draft.id}`}>Corpo</Label>
             <Textarea id={`body-${draft.id}`} name="body" rows={8} defaultValue={draft.body} />
@@ -87,6 +93,47 @@ function PendingDraftCard({ draft }: { draft: PendingDraftRow }) {
   );
 }
 
+function ApprovedDraftCard({ draft }: { draft: PendingDraftRow }) {
+  const router = useRouter();
+  const [sending, startSending] = useTransition();
+
+  function handleSend() {
+    startSending(async () => {
+      const res = await sendApprovedDraft(draft.id);
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Enviado.");
+      router.refresh();
+    });
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Link href={`/admin/growth/${draft.lead.id}`} className="underline-offset-4 hover:underline">
+            {draft.lead.contact_name}
+          </Link>
+          <Badge variant="outline">{GROWTH_CHANNEL_LABELS[draft.channel]}</Badge>
+        </CardTitle>
+        <CardDescription>{draft.subject ?? draft.body.slice(0, 80)}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Aprovado em {draft.reviewed_at ? new Date(draft.reviewed_at).toLocaleDateString("pt-BR") : "—"} por{" "}
+          {draft.reviewed_by}.
+        </p>
+        <Button type="button" size="sm" disabled={sending} onClick={handleSend}>
+          <Send className="size-4" />
+          {sending ? "Enviando..." : "Enviar"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ReviewQueue({ pending, approved }: { pending: PendingDraftRow[]; approved: PendingDraftRow[] }) {
   const [tab, setTab] = useState<"pending" | "approved">("pending");
 
@@ -114,23 +161,7 @@ export function ReviewQueue({ pending, approved }: { pending: PendingDraftRow[];
         <div className="space-y-3">
           {approved.length === 0 && <p className="text-sm text-muted-foreground">Nenhum rascunho aprovado ainda.</p>}
           {approved.map((draft) => (
-            <Card key={draft.id}>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  <Link href={`/admin/growth/${draft.lead.id}`} className="underline-offset-4 hover:underline">
-                    {draft.lead.contact_name}
-                  </Link>
-                </CardTitle>
-                <CardDescription>{draft.subject}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Aprovado em {draft.reviewed_at ? new Date(draft.reviewed_at).toLocaleDateString("pt-BR") : "—"} por{" "}
-                  {draft.reviewed_by}. Envio ainda não está disponível — chega na próxima etapa (integração com o
-                  Resend).
-                </p>
-              </CardContent>
-            </Card>
+            <ApprovedDraftCard key={draft.id} draft={draft} />
           ))}
         </div>
       )}

@@ -28,12 +28,14 @@ export async function getDraftsForLead(supabase: SupabaseClient, leadId: string)
   return data ?? [];
 }
 
-export type PendingDraftRow = GrowthOutreachDraft & { lead: Pick<GrowthLead, "id" | "contact_name" | "email" | "company_name"> };
+export type PendingDraftRow = GrowthOutreachDraft & {
+  lead: Pick<GrowthLead, "id" | "contact_name" | "email" | "company_name" | "phone">;
+};
 
 export async function getPendingDrafts(supabase: SupabaseClient): Promise<PendingDraftRow[]> {
   const { data } = await supabase
     .from("growth_outreach_drafts")
-    .select("*, lead:growth_leads(id, contact_name, email, company_name)")
+    .select("*, lead:growth_leads(id, contact_name, email, company_name, phone)")
     .eq("status", "pending_review")
     .order("created_at", { ascending: true })
     .returns<PendingDraftRow[]>();
@@ -44,7 +46,7 @@ export async function getPendingDrafts(supabase: SupabaseClient): Promise<Pendin
 export async function getApprovedDrafts(supabase: SupabaseClient): Promise<PendingDraftRow[]> {
   const { data } = await supabase
     .from("growth_outreach_drafts")
-    .select("*, lead:growth_leads(id, contact_name, email, company_name)")
+    .select("*, lead:growth_leads(id, contact_name, email, company_name, phone)")
     .eq("status", "approved")
     .order("reviewed_at", { ascending: true })
     .returns<PendingDraftRow[]>();

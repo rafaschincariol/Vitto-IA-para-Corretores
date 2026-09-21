@@ -14,8 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Trash2 } from "lucide-react";
 import { updateLead, deleteLead, generateDraftForLead } from "../actions";
 import {
+  GROWTH_CHANNEL_LABELS,
   GROWTH_STAGE_LABELS,
   GROWTH_SUSEP_STATUS_LABELS,
+  type GrowthDraftChannel,
   type GrowthLead,
   type GrowthLeadStage,
   type GrowthOutreachDraft,
@@ -33,6 +35,7 @@ export function LeadDetail({ lead, drafts }: { lead: GrowthLead; drafts: GrowthO
   const [state, formAction, pending] = useActionState(updateLead, { error: null });
   const [generating, startGenerating] = useTransition();
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [channel, setChannel] = useState<GrowthDraftChannel>("email");
 
   async function handleDelete() {
     if (!window.confirm("Excluir este lead?")) return;
@@ -47,7 +50,7 @@ export function LeadDetail({ lead, drafts }: { lead: GrowthLead; drafts: GrowthO
   function handleGenerateDraft() {
     setGenerateError(null);
     startGenerating(async () => {
-      const res = await generateDraftForLead(lead.id);
+      const res = await generateDraftForLead(lead.id, channel);
       if (res.error) {
         setGenerateError(res.error);
         return;
@@ -141,26 +144,39 @@ export function LeadDetail({ lead, drafts }: { lead: GrowthLead; drafts: GrowthO
           <CardContent className="space-y-4">
             {lead.qualification_notes && <p className="text-sm text-muted-foreground">{lead.qualification_notes}</p>}
             {generateError && <p className="text-sm text-destructive">{generateError}</p>}
-            <Button type="button" onClick={handleGenerateDraft} disabled={generating}>
-              <Sparkles className="size-4" />
-              {generating ? "Gerando..." : drafts.length > 0 ? "Gerar novo rascunho" : "Gerar rascunho de abordagem"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={channel} onValueChange={(v) => setChannel(v as GrowthDraftChannel)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">E-mail</SelectItem>
+                  <SelectItem value="whatsapp" disabled={!lead.phone}>
+                    WhatsApp{!lead.phone ? " (sem telefone)" : ""}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" onClick={handleGenerateDraft} disabled={generating}>
+                <Sparkles className="size-4" />
+                {generating ? "Gerando..." : drafts.length > 0 ? "Gerar novo rascunho" : "Gerar rascunho de abordagem"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
         {drafts.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Rascunhos de e-mail</CardTitle>
+              <CardTitle>Rascunhos de abordagem</CardTitle>
               <CardDescription>Revise e aprove na fila de aprovação.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {drafts.map((draft) => (
                 <div key={draft.id} className="flex items-center justify-between gap-2 rounded-md border p-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{draft.subject}</p>
+                    <p className="truncate text-sm font-medium">{draft.subject ?? draft.body}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(draft.created_at).toLocaleDateString("pt-BR")}
+                      {GROWTH_CHANNEL_LABELS[draft.channel]} · {new Date(draft.created_at).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
                   <Badge variant="outline">{DRAFT_STATUS_LABELS[draft.status]}</Badge>

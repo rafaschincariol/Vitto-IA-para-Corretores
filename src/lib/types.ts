@@ -260,6 +260,7 @@ export type GrowthLeadSource = "csv_import" | "manual";
 export type GrowthSusepStatus = "active" | "inactive" | "not_found" | "unchecked";
 export type GrowthLeadStage = "novo" | "qualificado" | "descartado" | "convertido";
 export type GrowthDraftStatus = "pending_review" | "approved" | "rejected" | "sent";
+export type GrowthDraftChannel = "email" | "whatsapp";
 
 export type GrowthLead = {
   id: string;
@@ -284,22 +285,41 @@ export type GrowthLead = {
 export type GrowthOutreachDraft = {
   id: string;
   lead_id: string;
-  subject: string;
+  channel: GrowthDraftChannel;
+  subject: string | null;
   body: string;
   status: GrowthDraftStatus;
   reviewed_by: string | null;
   reviewed_at: string | null;
   sent_at: string | null;
-  resend_message_id: string | null;
+  provider_message_id: string | null;
   created_at: string;
 };
+
+export type GrowthOutreachEventType =
+  | "sent"
+  | "delivered"
+  | "opened"
+  | "read"
+  | "clicked"
+  | "bounced"
+  | "failed"
+  | "complained"
+  | "replied";
 
 export type GrowthOutreachEvent = {
   id: string;
   draft_id: string;
-  event_type: "delivered" | "opened" | "clicked" | "bounced" | "complained" | "replied";
+  event_type: GrowthOutreachEventType;
   metadata: Record<string, unknown> | null;
   occurred_at: string;
+};
+
+export type GrowthSuppression = {
+  channel: GrowthDraftChannel;
+  contact: string;
+  reason: "bounced" | "complained" | "unsubscribed" | "manual" | "failed";
+  created_at: string;
 };
 
 export const GROWTH_STAGE_LABELS: Record<GrowthLeadStage, string> = {
@@ -314,6 +334,11 @@ export const GROWTH_SUSEP_STATUS_LABELS: Record<GrowthSusepStatus, string> = {
   inactive: "Inativo na SUSEP",
   not_found: "Não encontrado",
   unchecked: "Não verificado",
+};
+
+export const GROWTH_CHANNEL_LABELS: Record<GrowthDraftChannel, string> = {
+  email: "E-mail",
+  whatsapp: "WhatsApp",
 };
 
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
