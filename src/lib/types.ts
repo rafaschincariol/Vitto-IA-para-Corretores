@@ -253,6 +253,94 @@ export type PrevidenciaSimulacao = {
   updated_at: string;
 };
 
+// Motor de aquisição de assinantes ("growth engine") — dado da PLATAFORMA
+// (leads de corretores que ainda não são clientes do Vitto), não de uma
+// tenant. Ver supabase/migrations/0026_growth_engine.sql.
+export type GrowthLeadSource = "csv_import" | "manual";
+export type GrowthSusepStatus = "active" | "inactive" | "not_found" | "unchecked";
+export type GrowthLeadStage = "novo" | "qualificado" | "descartado" | "convertido";
+export type GrowthDraftStatus = "pending_review" | "approved" | "rejected" | "sent";
+export type GrowthDraftChannel = "email" | "whatsapp";
+
+export type GrowthLead = {
+  id: string;
+  company_name: string | null;
+  contact_name: string;
+  email: string;
+  phone: string | null;
+  cnpj_cpf: string | null;
+  city: string | null;
+  state: string | null;
+  source: GrowthLeadSource;
+  susep_status: GrowthSusepStatus;
+  susep_checked_at: string | null;
+  stage: GrowthLeadStage;
+  qualification_score: number | null;
+  qualification_notes: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GrowthOutreachDraft = {
+  id: string;
+  lead_id: string;
+  channel: GrowthDraftChannel;
+  subject: string | null;
+  body: string;
+  status: GrowthDraftStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  sent_at: string | null;
+  provider_message_id: string | null;
+  created_at: string;
+};
+
+export type GrowthOutreachEventType =
+  | "sent"
+  | "delivered"
+  | "opened"
+  | "read"
+  | "clicked"
+  | "bounced"
+  | "failed"
+  | "complained"
+  | "replied";
+
+export type GrowthOutreachEvent = {
+  id: string;
+  draft_id: string;
+  event_type: GrowthOutreachEventType;
+  metadata: Record<string, unknown> | null;
+  occurred_at: string;
+};
+
+export type GrowthSuppression = {
+  channel: GrowthDraftChannel;
+  contact: string;
+  reason: "bounced" | "complained" | "unsubscribed" | "manual" | "failed";
+  created_at: string;
+};
+
+export const GROWTH_STAGE_LABELS: Record<GrowthLeadStage, string> = {
+  novo: "Novo",
+  qualificado: "Qualificado",
+  descartado: "Descartado",
+  convertido: "Convertido",
+};
+
+export const GROWTH_SUSEP_STATUS_LABELS: Record<GrowthSusepStatus, string> = {
+  active: "Ativo na SUSEP",
+  inactive: "Inativo na SUSEP",
+  not_found: "Não encontrado",
+  unchecked: "Não verificado",
+};
+
+export const GROWTH_CHANNEL_LABELS: Record<GrowthDraftChannel, string> = {
+  email: "E-mail",
+  whatsapp: "WhatsApp",
+};
+
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   ativo: "Ativo",
   em_renovacao: "Em Renovação",
